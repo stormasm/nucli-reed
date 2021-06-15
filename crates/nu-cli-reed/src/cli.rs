@@ -337,9 +337,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
             session_text.push('\n');
         }
 
-        // start time for command duration
-        let cmd_start_time = std::time::Instant::now();
-
         let line = match convert_rustyline_result_to_string(readline) {
             LineResult::Success(_) => process_script(
                 &session_text[line_start..],
@@ -350,11 +347,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
             ),
             x => x,
         };
-
-        // Store cmd duration in an env var
-        context
-            .scope
-            .add_env_var("CMD_DURATION", format!("{:?}", cmd_start_time.elapsed()));
 
         match line {
             LineResult::Success(line) => {
