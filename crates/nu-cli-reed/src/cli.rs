@@ -172,6 +172,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
 
     //Configure rustyline
     let mut rl = default_rustyline_editor_configuration();
+/*
     let history_path = if let Some(cfg) = &context.configs.lock().global_config {
         let _ = configure_rustyline_editor(&mut rl, cfg);
         let helper = Some(nu_line_editor_helper(&context, cfg));
@@ -185,7 +186,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     if options.save_history {
         let _ = rl.load_history(&history_path);
     }
-
+*/
     //set vars from cfg if present
     let (skip_welcome_message, prompt) = if let Some(cfg) = &context.configs.lock().global_config {
         (
@@ -257,26 +258,34 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
 
         match line {
             LineResult::Success(line) => {
+/*
                 if options.save_history && !line.trim().is_empty() {
                     rl.add_history_entry(&line);
                     let _ = rl.append_history(&history_path);
                 }
+*/
                 maybe_print_errors(&context, Text::from(session_text.clone()));
             }
 
+
             LineResult::ClearHistory => {
+                println!("this clear history line needs be here for the moment")
+/*
                 if options.save_history {
                     rl.clear_history();
                     let _ = rl.append_history(&history_path);
                 }
+*/
             }
 
+
             LineResult::Error(line, err) => {
+/*
                 if options.save_history && !line.trim().is_empty() {
                     rl.add_history_entry(&line);
                     let _ = rl.append_history(&history_path);
                 }
-
+*/
                 context
                     .host
                     .lock()
@@ -306,9 +315,11 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 }
 
                 if ctrlcbreak {
+/*
                     if options.save_history {
                         let _ = rl.append_history(&history_path);
                     }
+*/
                     std::process::exit(0);
                 } else {
                     context.with_host(|host| host.stdout("CTRL-C pressed (again to quit)"));
@@ -332,10 +343,11 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     }
 
     // we are ok if we can not save history
+/*
     if options.save_history {
         let _ = rl.append_history(&history_path);
     }
-
+*/
     Ok(())
 }
 
