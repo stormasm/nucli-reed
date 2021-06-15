@@ -160,24 +160,11 @@ pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(
 pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
     let _ = configure_ctrl_c(&context);
 
-    // start time for running startup scripts (this metric includes loading of the cfg, but w/e)
-    let startup_commands_start_time = std::time::Instant::now();
-
     if let Some(cfg) = options.config {
         load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
     } else {
         load_global_cfg(&context);
     }
-    // Store cmd duration in an env var
-    context.scope.add_env_var(
-        "CMD_DURATION",
-        format!("{:?}", startup_commands_start_time.elapsed()),
-    );
-    trace!(
-        "startup commands took {:?}",
-        startup_commands_start_time.elapsed()
-    );
-
 
     //Configure reedline
     let reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
