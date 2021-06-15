@@ -5,6 +5,19 @@ use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, Ev
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
+use reedline::{
+    DefaultPrompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
+};
+
+/*
+use reedline::{
+    DefaultPrompt, History, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
+    HISTORY_SIZE,
+};
+*/
+
+
+
 #[cfg(feature = "rustyline-support")]
 use crate::line_editor::{
     configure_rustyline_editor, convert_rustyline_result_to_string,
@@ -165,6 +178,11 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         startup_commands_start_time.elapsed()
     );
 
+
+    //Configure reedline
+    let reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
+
+
     //Configure rustyline
     let mut rl = default_rustyline_editor_configuration();
     let history_path = if let Some(cfg) = &context.configs.lock().global_config {
@@ -305,6 +323,8 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
             helper.colored_prompt = colored_prompt;
         }
         let mut initial_command = Some(String::new());
+
+
         let mut readline = Err(ReadlineError::Eof);
         while let Some(ref cmd) = initial_command {
             readline = rl.readline_with_initial(&prompt, (&cmd, ""));
