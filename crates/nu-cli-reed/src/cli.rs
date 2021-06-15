@@ -242,6 +242,8 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
 
         let cwd = context.shell_manager.path();
 
+
+/*
         let colored_prompt = {
             if let Some(prompt) = &prompt {
                 let prompt_line = prompt.as_string()?;
@@ -310,7 +312,9 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 )
             }
         };
+*/
 
+/*
         let prompt = {
             if let Ok(bytes) = strip_ansi_escapes::strip(&colored_prompt) {
                 String::from_utf8_lossy(&bytes).to_string()
@@ -322,6 +326,9 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         if let Some(helper) = rl.helper_mut() {
             helper.colored_prompt = colored_prompt;
         }
+*/
+        let prompt = "> ".to_string();
+
         let mut initial_command = Some(String::new());
 
 
