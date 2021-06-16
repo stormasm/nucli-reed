@@ -231,7 +231,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         };
 
         match line {
-            LineResult::Success(line) => {
+            LineResult::Success(_line) => {
                 maybe_print_errors(&context, Text::from(session_text.clone()));
             }
 
@@ -239,7 +239,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 println!("this clear history line needs be here for the moment")
             }
 
-            LineResult::Error(line, err) => {
+            LineResult::Error(_line, err) => {
                 context
                     .host
                     .lock()
