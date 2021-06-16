@@ -1,5 +1,4 @@
 use crate::line_editor::configure_ctrl_c;
-use nu_ansi_term::Color;
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
 #[allow(unused_imports)]
@@ -11,8 +10,8 @@ use reedline::{
 
 #[cfg(feature = "rustyline-support")]
 use crate::line_editor::{
-    configure_rustyline_editor, convert_rustyline_result_to_string,
-    default_rustyline_editor_configuration, nu_line_editor_helper,
+    convert_rustyline_result_to_string,
+    default_rustyline_editor_configuration,
 };
 
 #[allow(unused_imports)]
@@ -158,12 +157,12 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     }
 
     //Configure reedline
-    let reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
+    let _reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
     //Configure rustyline
     let mut rl = default_rustyline_editor_configuration();
 
-    let (skip_welcome_message, prompt) = if let Some(cfg) = &context.configs.lock().global_config {
+    let (skip_welcome_message, _prompt) = if let Some(cfg) = &context.configs.lock().global_config {
         (
             cfg.var("skip_welcome_message")
                 .map(|x| x.is_true())
@@ -203,7 +202,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
             continue;
         }
 
-        let cwd = context.shell_manager.path();
+        // let cwd = context.shell_manager.path();
 
         let prompt = "> ".to_string();
         let mut initial_command = Some(String::new());
