@@ -3,7 +3,7 @@ There are three crates here:
 
 * nu-cli the original crate out of the box
 * nu-cli-rusty the bare bones slimmed down crate using rustyline
-* nu-cli-reed the brand new crate using reedline
+* nu-cli-reed the brand new crate using [reedline](https://github.com/jonathandturner/reedline)
 
 src/main.rs is the original out of the box main.rs that works modified
 with all 3 crates simply swap out nu_cli for {nu_cli_reed, nu_cli_rusty}
@@ -34,8 +34,6 @@ nu-engine = "0.32.0"
 ### Integrate reedline into nushell
 
 For the initial code we use this commit point:
-
-Use [reedline](https://github.com/jonathandturner/reedline) and replace rustyline...
 
 ### Working commit points
 
