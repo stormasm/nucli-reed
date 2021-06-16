@@ -1,4 +1,18 @@
 
+There are three crates here:
+
+* the original nu-cli crate out of the box
+* the bare bones slimmed down nu-cli-rusty crate using rustyline
+* the brand new nu-cli-reed crate using reedline
+
+src/main.rs is the original out of the box main.rs that works modified
+with all 3 crates simply swap out nu_cli for {nu_cli_reed, nu_cli_rusty}
+
+Along with :
+
+* examples/rusty.rs
+* examples/reed.rs
+
 ### Integrate reedline into nushell
 
 Use [reedline](https://github.com/jonathandturner/reedline) and replace rustyline...
