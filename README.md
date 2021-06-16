@@ -2,7 +2,7 @@
 There are three crates here:
 
 * nu-cli the original crate out of the box
-* nu-cli-rusty the bare bones slimmed down crate using rustyline
+* nu-cli-rusty the bare bones slimmed down crate using [rustyline](https://github.com/kkawakam/rustyline)
 * nu-cli-reed the brand new crate using [reedline](https://github.com/jonathandturner/reedline)
 
 src/main.rs is the original out of the box main.rs that works modified
