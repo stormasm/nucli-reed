@@ -9,15 +9,6 @@ use reedline::{
     DefaultPrompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
 };
 
-/*
-use reedline::{
-    DefaultPrompt, History, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
-    HISTORY_SIZE,
-};
-*/
-
-
-
 #[cfg(feature = "rustyline-support")]
 use crate::line_editor::{
     configure_rustyline_editor, convert_rustyline_result_to_string,
@@ -169,25 +160,9 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     //Configure reedline
     let reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
-
     //Configure rustyline
     let mut rl = default_rustyline_editor_configuration();
-/*
-    let history_path = if let Some(cfg) = &context.configs.lock().global_config {
-        let _ = configure_rustyline_editor(&mut rl, cfg);
-        let helper = Some(nu_line_editor_helper(&context, cfg));
-        rl.set_helper(helper);
-        nu_data::config::path::history_path_or_default(cfg)
-    } else {
-        nu_data::config::path::default_history_path()
-    };
 
-    // Don't load history if it's not necessary
-    if options.save_history {
-        let _ = rl.load_history(&history_path);
-    }
-*/
-    //set vars from cfg if present
     let (skip_welcome_message, prompt) = if let Some(cfg) = &context.configs.lock().global_config {
         (
             cfg.var("skip_welcome_message")
@@ -258,44 +233,18 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
 
         match line {
             LineResult::Success(line) => {
-/*
-                if options.save_history && !line.trim().is_empty() {
-                    rl.add_history_entry(&line);
-                    let _ = rl.append_history(&history_path);
-                }
-*/
                 maybe_print_errors(&context, Text::from(session_text.clone()));
             }
 
-
             LineResult::ClearHistory => {
                 println!("this clear history line needs be here for the moment")
-/*
-                if options.save_history {
-                    rl.clear_history();
-                    let _ = rl.append_history(&history_path);
-                }
-*/
             }
 
-
             LineResult::Error(line, err) => {
-/*
-                if options.save_history && !line.trim().is_empty() {
-                    rl.add_history_entry(&line);
-                    let _ = rl.append_history(&history_path);
-                }
-*/
                 context
                     .host
                     .lock()
                     .print_err(err, &Text::from(session_text.clone()));
-
-                // I am not so sure, we don't need maybe_print_errors here (as we printed an err
-                // above), because maybe_print_errors also clears the errors.
-                // TODO Analyze where above err comes from, and whether we need to clear
-                // context.errors here
-                // Or just be consistent and return errors always in context.errors...
                 maybe_print_errors(&context, Text::from(session_text.clone()));
             }
 
@@ -315,11 +264,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 }
 
                 if ctrlcbreak {
-/*
-                    if options.save_history {
-                        let _ = rl.append_history(&history_path);
-                    }
-*/
                     std::process::exit(0);
                 } else {
                     context.with_host(|host| host.stdout("CTRL-C pressed (again to quit)"));
@@ -341,13 +285,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         }
         ctrlcbreak = false;
     }
-
-    // we are ok if we can not save history
-/*
-    if options.save_history {
-        let _ = rl.append_history(&history_path);
-    }
-*/
     Ok(())
 }
 
