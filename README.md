@@ -13,7 +13,27 @@ Along with :
 * examples/rusty.rs
 * examples/reed.rs
 
+### Build Details
+
+So every time a new release of nushell comes out I will do a branch off main and update the code coinciding with the release.
+
+There are 3 crates in this repo...
+
+  * nu-cli
+  * nu-cli-rusty
+  * nu-cli-reed
+
+Cargo.toml keys off the release builds using the following syntax:
+
+```rust
+nu-command = "0.32.0"
+nu-data = "0.32.0"
+nu-engine = "0.32.0"
+```
+
 ### Integrate reedline into nushell
+
+For the initial code we use this commit point:
 
 Use [reedline](https://github.com/jonathandturner/reedline) and replace rustyline...
 
@@ -22,15 +42,3 @@ Use [reedline](https://github.com/jonathandturner/reedline) and replace rustylin
 ##### June 13, 2021
 
 [7257797](https://github.com/jonathandturner/reedline/commit/725779728c078fa62ee7b16a6589ae4cc03ee44a)
-
-### Build Details
-
-So every time a new release of nushell comes out
-I will branch off main and create a build.
-
-There are 2 crates in this repo...
-
-  * nu-cli
-  * reedline
-
-Cargo.toml keys off the release builds.
