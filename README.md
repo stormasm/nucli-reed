@@ -1,9 +1,10 @@
 
-There are three crates here:
+There are four crates here:
 
 * nu-cli the original crate out of the box
 * nu-cli-rusty the bare bones slimmed down crate using [rustyline](https://github.com/kkawakam/rustyline)
 * nu-cli-reed the brand new crate using [reedline](https://github.com/jonathandturner/reedline)
+* reedline is here temporarily until a crate is published
 
 src/main.rs is the original out of the box main.rs that works modified
 with all 3 crates simply swap out nu_cli for {nu_cli_reed, nu_cli_rusty}
