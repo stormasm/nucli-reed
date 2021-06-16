@@ -4,14 +4,11 @@ use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, Ev
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
-use reedline::{
-    DefaultPrompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
-};
+use reedline::{DefaultPrompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
 
 #[cfg(feature = "rustyline-support")]
 use crate::line_editor::{
-    convert_rustyline_result_to_string,
-    default_rustyline_editor_configuration,
+    convert_rustyline_result_to_string, default_rustyline_editor_configuration,
 };
 
 #[allow(unused_imports)]
