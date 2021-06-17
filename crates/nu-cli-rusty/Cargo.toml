@@ -4,7 +4,7 @@ build = "build.rs"
 description = "CLI for nushell"
 edition = "2018"
 license = "MIT"
-name = "nu-cli-reed"
+name = "nu-cli-rusty"
 version = "0.32.0"
 
 [lib]

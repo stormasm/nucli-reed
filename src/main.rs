@@ -1,6 +1,6 @@
 use clap::{App, Arg};
 use log::LevelFilter;
-use nu_cli_reed::{create_default_context, NuScript, Options};
+use nu_cli_rusty::{create_default_context, NuScript, Options};
 use nu_command::utils::test_bins as binaries;
 use std::error::Error;
 
@@ -151,7 +151,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             options.scripts = vec![NuScript::code(values)?];
 
             let context = create_default_context(false)?;
-            nu_cli_reed::run_script_file(context, options)?;
+            nu_cli_rusty::run_script_file(context, options)?;
             return Ok(());
         }
     }
@@ -163,7 +163,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             options.scripts = vec![NuScript::source_file(filepath.as_os_str())?];
 
             let context = create_default_context(false)?;
-            nu_cli_reed::run_script_file(context, options)?;
+            nu_cli_rusty::run_script_file(context, options)?;
             return Ok(());
         }
 
@@ -171,12 +171,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             let context = create_default_context(true)?;
 
             if !matches.is_present("skip-plugins") {
-                let _ = nu_cli_reed::register_plugins(&context);
+                let _ = nu_cli_rusty::register_plugins(&context);
             }
 
             #[cfg(feature = "rustyline-support")]
             {
-                nu_cli_reed::cli(context, options)?;
+                nu_cli_rusty::cli(context, options)?;
             }
 
             #[cfg(not(feature = "rustyline-support"))]
