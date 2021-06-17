@@ -20,6 +20,8 @@ members = ["crates/*/"]
 [dependencies]
 #nu-cli-reed = { version = "0.32.0", path = "./crates/nu-cli-reed", default-features = false }
 nu-cli-rusty = { version = "0.32.0", path = "./crates/nu-cli-rusty", default-features = false }
+reedline = { version = "0.1.0", path = "./crates/reedline", default-features = false }
+crossterm = { version = "0.19.0", features = ["serde"] }
 
 nu-command = "0.32.0"
 nu-data = "0.32.0"
