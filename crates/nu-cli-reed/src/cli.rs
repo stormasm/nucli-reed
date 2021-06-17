@@ -199,91 +199,15 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         let mut initial_command = Some(String::new());
 
         //
-        // This is the beginning of the rustyline code section
+        // This is the beginning of the reedline code section
         //
 
         //Configure reedline
         let _reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
-        //Configure rustyline
-        let mut rl = default_rustyline_editor_configuration();
 
-        let mut readline = Err(ReadlineError::Eof);
-        while let Some(ref cmd) = initial_command {
-            readline = rl.readline_with_initial(&prompt, (&cmd, ""));
-            initial_command = None;
-        }
 
-        if let Ok(line) = &readline {
-            line_start = session_text.len();
-            session_text.push_str(line);
-            session_text.push('\n');
-        }
 
-        let line = match convert_rustyline_result_to_string(readline) {
-            LineResult::Success(_) => process_script(
-                &session_text[line_start..],
-                &context,
-                false,
-                line_start,
-                true,
-            ),
-            x => x,
-        };
-
-        match line {
-            LineResult::Success(_line) => {
-                maybe_print_errors(&context, Text::from(session_text.clone()));
-            }
-
-            LineResult::ClearHistory => {
-                println!("this clear history line needs be here for the moment")
-            }
-
-            LineResult::Error(_line, err) => {
-                context
-                    .host
-                    .lock()
-                    .print_err(err, &Text::from(session_text.clone()));
-                maybe_print_errors(&context, Text::from(session_text.clone()));
-            }
-
-            LineResult::CtrlC => {
-                let config_ctrlc_exit = context
-                    .configs
-                    .lock()
-                    .global_config
-                    .as_ref()
-                    .map(|cfg| cfg.var("ctrlc_exit"))
-                    .flatten()
-                    .map(|ctrl_c| ctrl_c.is_true())
-                    .unwrap_or(false); // default behavior is to allow CTRL-C spamming similar to other shells
-
-                if !config_ctrlc_exit {
-                    continue;
-                }
-
-                if ctrlcbreak {
-                    std::process::exit(0);
-                } else {
-                    context.with_host(|host| host.stdout("CTRL-C pressed (again to quit)"));
-                    ctrlcbreak = true;
-                    continue;
-                }
-            }
-
-            LineResult::CtrlD => {
-                context.shell_manager.remove_at_current();
-                if context.shell_manager.is_empty() {
-                    break;
-                }
-            }
-
-            LineResult::Break => {
-                break;
-            }
-        }
-        ctrlcbreak = false;
     }
     Ok(())
 }
