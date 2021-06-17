@@ -4,7 +4,7 @@ use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, Ev
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
-use reedline::{DefaultPrompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
+use reedline::{DefaultPrompt, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
 
 /*
 use crate::line_editor::{
@@ -202,9 +202,24 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         //Configure reedline
         let _reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
+        let mut line_editor = Reedline::new();
+        let prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
-
-
+        loop {
+            let sig = line_editor.read_line(&prompt)?;
+            match sig {
+                Signal::CtrlD | Signal::CtrlC => {
+                    line_editor.print_crlf().unwrap();
+                    break;
+                }
+                Signal::Success(buffer) => {
+                    println!("We processed: {}", buffer);
+                }
+                Signal::CtrlL => {
+                    line_editor.clear_screen().unwrap();
+                }
+            }
+        }
     }
     Ok(())
 }
