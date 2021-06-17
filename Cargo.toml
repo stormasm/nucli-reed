@@ -15,10 +15,10 @@ version = "0.32.0"
 [workspace]
 members = ["crates/*/"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# only one of the dependencies [nu-cli-reed or nu-cli-rusty] can be on
 
 [dependencies]
-nu-cli-reed = { version = "0.32.0", path = "./crates/nu-cli-reed", default-features = false }
+#nu-cli-reed = { version = "0.32.0", path = "./crates/nu-cli-reed", default-features = false }
 nu-cli-rusty = { version = "0.32.0", path = "./crates/nu-cli-rusty", default-features = false }
 
 nu-command = "0.32.0"
