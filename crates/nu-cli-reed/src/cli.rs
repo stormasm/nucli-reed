@@ -6,10 +6,11 @@ pub(crate) use nu_engine::script::{process_script, LineResult};
 
 use reedline::{DefaultPrompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
 
-#[cfg(feature = "rustyline-support")]
+/*
 use crate::line_editor::{
     convert_rustyline_result_to_string, default_rustyline_editor_configuration,
 };
+*/
 
 #[allow(unused_imports)]
 use nu_data::config;
@@ -18,9 +19,6 @@ use nu_stream::InputStream;
 use std::ffi::{OsStr, OsString};
 #[allow(unused_imports)]
 use std::sync::atomic::Ordering;
-
-#[cfg(feature = "rustyline-support")]
-use rustyline::{self, error::ReadlineError};
 
 use nu_errors::ShellError;
 use nu_parser::ParserScope;
@@ -143,7 +141,6 @@ pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(
     Ok(())
 }
 
-#[cfg(feature = "rustyline-support")]
 pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
     let _ = configure_ctrl_c(&context);
 
