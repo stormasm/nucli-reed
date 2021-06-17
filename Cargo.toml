@@ -18,8 +18,8 @@ members = ["crates/*/"]
 # only one of the dependencies [nu-cli-reed or nu-cli-rusty] can be on
 
 [dependencies]
-#nu-cli-reed = { version = "0.32.0", path = "./crates/nu-cli-reed", default-features = false }
-nu-cli-rusty = { version = "0.32.0", path = "./crates/nu-cli-rusty", default-features = false }
+nu-cli-reed = { version = "0.32.0", path = "./crates/nu-cli-reed", default-features = false }
+#nu-cli-rusty = { version = "0.32.0", path = "./crates/nu-cli-rusty", default-features = false }
 reedline = { version = "0.1.0", path = "./crates/reedline", default-features = false }
 crossterm = { version = "0.19.0", features = ["serde"] }
 
@@ -48,17 +48,17 @@ serial_test = "0.5.1"
 hamcrest2 = "0.3.0"
 
 [features]
-ctrlc-support = ["nu-cli-rusty/ctrlc", "nu-command/ctrlc"]
+ctrlc-support = ["nu-cli-reed/ctrlc", "nu-command/ctrlc"]
 directories-support = [
-    "nu-cli-rusty/directories",
-    "nu-cli-rusty/dirs",
+    "nu-cli-reed/directories",
+    "nu-cli-reed/dirs",
     "nu-command/directories",
     "nu-command/dirs",
     "nu-data/directories",
     "nu-data/dirs",
     "nu-engine/dirs",
 ]
-rustyline-support = ["nu-cli-rusty/rustyline-support", "nu-command/rustyline-support"]
+rustyline-support = ["nu-cli-reed/rustyline-support", "nu-command/rustyline-support"]
 
 default = [
     "directories-support",
