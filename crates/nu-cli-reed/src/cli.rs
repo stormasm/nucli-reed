@@ -153,12 +153,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         load_global_cfg(&context);
     }
 
-    //Configure reedline
-    let _reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
-
-    //Configure rustyline
-    let mut rl = default_rustyline_editor_configuration();
-
     let (skip_welcome_message, _prompt) = if let Some(cfg) = &context.configs.lock().global_config {
         (
             cfg.var("skip_welcome_message")
@@ -203,6 +197,16 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
 
         let prompt = "> ".to_string();
         let mut initial_command = Some(String::new());
+
+        //
+        // This is the beginning of the rustyline code section
+        //
+
+        //Configure reedline
+        let _reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
+
+        //Configure rustyline
+        let mut rl = default_rustyline_editor_configuration();
 
         let mut readline = Err(ReadlineError::Eof);
         while let Some(ref cmd) = initial_command {
