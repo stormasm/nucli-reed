@@ -214,6 +214,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 }
                 Signal::Success(buffer) => {
                     println!("We processed: {}", buffer);
+                    process_script(&buffer, &context, false, 0, true);
                 }
                 Signal::CtrlL => {
                     line_editor.clear_screen().unwrap();
