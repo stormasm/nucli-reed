@@ -216,8 +216,8 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                     println!("We processed: {}", buffer);
                     let line = process_script(&buffer, &context, false, 0, true);
 
-                    //println!("{:?}",line);
-
+                    println!("{:?}",line);
+/*
                     match line {
                         LineResult::Success(_line) => {
                             println!("{:?}", _line);
@@ -273,8 +273,10 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                             break;
                         }
                     }
+                    */
                     ctrlcbreak = false;
                 }
+
                 Signal::CtrlL => {
                     line_editor.clear_screen().unwrap();
                 }
