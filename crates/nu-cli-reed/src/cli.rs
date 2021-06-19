@@ -213,14 +213,15 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                     break;
                 }
                 Signal::Success(buffer) => {
-                    println!("We processed: {}", buffer);
+                    //println!("We processed: {}", buffer);
                     let line = process_script(&buffer, &context, false, 0, true);
+                    // you need this next line here to flush the stdout cache
+                    // otherwise date now or version | get version does not work
+                    // println!("");
 
-                    println!("{:?}",line);
-/*
                     match line {
                         LineResult::Success(_line) => {
-                            println!("{:?}", _line);
+                            println!("");
                             maybe_print_errors(&context, Text::from(session_text.clone()));
                         }
                         LineResult::ClearHistory => {
@@ -273,7 +274,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                             break;
                         }
                     }
-                    */
                     ctrlcbreak = false;
                 }
 
