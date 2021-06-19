@@ -214,7 +214,66 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 }
                 Signal::Success(buffer) => {
                     println!("We processed: {}", buffer);
-                    process_script(&buffer, &context, false, 0, true);
+                    let line = process_script(&buffer, &context, false, 0, true);
+
+                    //println!("{:?}",line);
+
+                    match line {
+                        LineResult::Success(_line) => {
+                            println!("{:?}", _line);
+                            maybe_print_errors(&context, Text::from(session_text.clone()));
+                        }
+                        LineResult::ClearHistory => {
+                            println!("this clear history line needs be here for the moment")
+                        }
+
+                        LineResult::Error(_line, err) => {
+                            context
+                                .host
+                                .lock()
+                                .print_err(err, &Text::from(session_text.clone()));
+                            maybe_print_errors(&context, Text::from(session_text.clone()));
+                        }
+
+                        LineResult::CtrlC => {
+                            let config_ctrlc_exit = context
+                                .configs
+                                .lock()
+                                .global_config
+                                .as_ref()
+                                .map(|cfg| cfg.var("ctrlc_exit"))
+                                .flatten()
+                                .map(|ctrl_c| ctrl_c.is_true())
+                                .unwrap_or(false); // default behavior is to allow CTRL-C spamming similar to other shells
+
+                            if !config_ctrlc_exit {
+                                continue;
+                            }
+
+                            if ctrlcbreak {
+                                std::process::exit(0);
+                            } else {
+                                context.with_host(|host| {
+                                    host.stdout("CTRL-C pressed (again to quit)")
+                                });
+                                ctrlcbreak = true;
+                                continue;
+                            }
+                        }
+
+                        LineResult::CtrlD => {
+                            println!("got a CtrlD");
+                            context.shell_manager.remove_at_current();
+                            if context.shell_manager.is_empty() {
+                                break;
+                            }
+                        }
+
+                        LineResult::Break => {
+                            break;
+                        }
+                    }
+                    ctrlcbreak = false;
                 }
                 Signal::CtrlL => {
                     line_editor.clear_screen().unwrap();
