@@ -87,8 +87,6 @@ impl NuScript {
 }
 
 pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
-    //    let _ = configure_ctrl_c(&context);
-
     if let Some(cfg) = options.config {
         load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
     } else {
