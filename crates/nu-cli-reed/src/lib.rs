@@ -13,9 +13,9 @@ mod cli;
 #[cfg(feature = "rustyline-support")]
 mod completion;
 mod format;
-#[cfg(feature = "rustyline-support")]
-mod keybinding;
-mod line_editor;
+//#[cfg(feature = "rustyline-support")]
+//mod keybinding;
+//mod line_editor;
 mod shell;
 pub mod types;
 
