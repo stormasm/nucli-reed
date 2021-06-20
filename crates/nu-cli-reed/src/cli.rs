@@ -1,16 +1,10 @@
-use crate::line_editor::configure_ctrl_c;
+//use crate::line_editor::configure_ctrl_c;
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
 use reedline::{DefaultPrompt, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
-
-/*
-use crate::line_editor::{
-    convert_rustyline_result_to_string, default_rustyline_editor_configuration,
-};
-*/
 
 #[allow(unused_imports)]
 use nu_data::config;
@@ -129,7 +123,7 @@ pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(
     }
 
     let _ = register_plugins(&context);
-    let _ = configure_ctrl_c(&context);
+    //    let _ = configure_ctrl_c(&context);
 
     let script = options
         .scripts
@@ -142,7 +136,7 @@ pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(
 }
 
 pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
-    let _ = configure_ctrl_c(&context);
+    //    let _ = configure_ctrl_c(&context);
 
     if let Some(cfg) = options.config {
         load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
