@@ -12,12 +12,12 @@ extern crate quickcheck_macros;
 mod cli;
 #[cfg(feature = "rustyline-support")]
 //mod completion;
-mod format;
+//mod format;
 //#[cfg(feature = "rustyline-support")]
 //mod keybinding;
 //mod line_editor;
 //mod shell;
-pub mod types;
+//pub mod types;
 
 #[cfg(feature = "rustyline-support")]
 pub use crate::cli::cli;

@@ -31,6 +31,7 @@ macro_rules! trace_out_stream {
     }};
 }
 
+#[allow(unused_imports)]
 pub(crate) use nu_engine::Host;
 #[allow(unused_imports)]
 pub(crate) use nu_errors::ShellError;
