@@ -9,6 +9,8 @@ We are sending nushell commands and it is responding back and writing its output
 
 Those commands do not return a carriage return in their output whereas the other commands do...
 
+### Introduction
+
 There are four crates here:
 
 * nu-cli the original crate out of the box
