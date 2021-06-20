@@ -161,8 +161,8 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     // Give ourselves a scope to work in
     context.scope.enter_scope();
 
-    let mut session_text = String::new();
-    let mut line_start: usize = 0;
+    let session_text = String::new();
+    let mut _line_start: usize = 0;
 
     if !skip_welcome_message {
         println!(
@@ -179,8 +179,8 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     let mut ctrlcbreak = false;
 
     loop {
-        let prompt = "> ".to_string();
-        let mut initial_command = Some(String::new());
+        let _prompt = "> ".to_string();
+        let mut _initial_command = Some(String::new());
 
         let mut line_editor = Reedline::new();
         let prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
