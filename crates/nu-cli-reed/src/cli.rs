@@ -185,22 +185,8 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     let mut ctrlcbreak = false;
 
     loop {
-        if context.ctrl_c.load(Ordering::SeqCst) {
-            context.ctrl_c.store(false, Ordering::SeqCst);
-            continue;
-        }
-
-        // let cwd = context.shell_manager.path();
-
         let prompt = "> ".to_string();
         let mut initial_command = Some(String::new());
-
-        //
-        // This is the beginning of the reedline code section
-        //
-
-        //Configure reedline
-        let _reed_prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
         let mut line_editor = Reedline::new();
         let prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
