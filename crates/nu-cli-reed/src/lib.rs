@@ -18,7 +18,6 @@ mod cli;
 //mod line_editor;
 //mod shell;
 //pub mod types;
-
 #[cfg(feature = "rustyline-support")]
 pub use crate::cli::cli;
 

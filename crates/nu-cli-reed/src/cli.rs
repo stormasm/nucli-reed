@@ -86,55 +86,6 @@ impl NuScript {
     }
 }
 
-pub fn search_paths() -> Vec<std::path::PathBuf> {
-    use std::env;
-
-    let mut search_paths = Vec::new();
-
-    // Automatically add path `nu` is in as a search path
-    if let Ok(exe_path) = env::current_exe() {
-        if let Some(exe_dir) = exe_path.parent() {
-            search_paths.push(exe_dir.to_path_buf());
-        }
-    }
-
-    if let Ok(config) = nu_data::config::config(Tag::unknown()) {
-        if let Some(Value {
-            value: UntaggedValue::Table(pipelines),
-            ..
-        }) = config.get("plugin_dirs")
-        {
-            for pipeline in pipelines {
-                if let Ok(plugin_dir) = pipeline.as_string() {
-                    search_paths.push(PathBuf::from(plugin_dir));
-                }
-            }
-        }
-    }
-
-    search_paths
-}
-
-pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
-    if let Some(cfg) = options.config {
-        load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
-    } else {
-        load_global_cfg(&context);
-    }
-
-    let _ = register_plugins(&context);
-    //    let _ = configure_ctrl_c(&context);
-
-    let script = options
-        .scripts
-        .get(0)
-        .ok_or_else(|| ShellError::unexpected("Nu source code not available"))?;
-
-    run_script_standalone(script.get_code().to_string(), options.stdin, &context, true)?;
-
-    Ok(())
-}
-
 pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
     //    let _ = configure_ctrl_c(&context);
 
@@ -259,6 +210,55 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
             }
         }
     }
+    Ok(())
+}
+
+pub fn search_paths() -> Vec<std::path::PathBuf> {
+    use std::env;
+
+    let mut search_paths = Vec::new();
+
+    // Automatically add path `nu` is in as a search path
+    if let Ok(exe_path) = env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            search_paths.push(exe_dir.to_path_buf());
+        }
+    }
+
+    if let Ok(config) = nu_data::config::config(Tag::unknown()) {
+        if let Some(Value {
+            value: UntaggedValue::Table(pipelines),
+            ..
+        }) = config.get("plugin_dirs")
+        {
+            for pipeline in pipelines {
+                if let Ok(plugin_dir) = pipeline.as_string() {
+                    search_paths.push(PathBuf::from(plugin_dir));
+                }
+            }
+        }
+    }
+
+    search_paths
+}
+
+pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
+    if let Some(cfg) = options.config {
+        load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
+    } else {
+        load_global_cfg(&context);
+    }
+
+    let _ = register_plugins(&context);
+    //    let _ = configure_ctrl_c(&context);
+
+    let script = options
+        .scripts
+        .get(0)
+        .ok_or_else(|| ShellError::unexpected("Nu source code not available"))?;
+
+    run_script_standalone(script.get_code().to_string(), options.stdin, &context, true)?;
+
     Ok(())
 }
 
