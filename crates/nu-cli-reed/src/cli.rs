@@ -221,7 +221,6 @@ pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(
     }
 
     let _ = register_plugins(&context);
-    //    let _ = configure_ctrl_c(&context);
 
     let script = options
         .scripts
