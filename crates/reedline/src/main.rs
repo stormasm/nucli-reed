@@ -41,7 +41,7 @@ fn main() -> Result<()> {
                     line_editor.clear_screen()?;
                     continue;
                 }
-                if buffer.trim() == "history" {
+                if buffer.trim() == "rlh" {
                     line_editor.print_history()?;
                     continue;
                 }
