@@ -125,8 +125,6 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         let _ = nu_ansi_term::enable_ansi_support();
     }
 
-    let mut ctrlcbreak = false;
-
     loop {
         let _prompt = "> ".to_string();
         let mut _initial_command = Some(String::new());
@@ -153,7 +151,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                         maybe_print_errors(&context, Text::from(session_text.clone()));
                     }
                     LineResult::ClearHistory => {
-                        println!("this clear history line needs be here for the moment")
+                        println!("got ClearHistory")
                     }
 
                     LineResult::Error(_line, err) => {
@@ -165,42 +163,17 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                     }
 
                     LineResult::CtrlC => {
-                        let config_ctrlc_exit = context
-                            .configs
-                            .lock()
-                            .global_config
-                            .as_ref()
-                            .map(|cfg| cfg.var("ctrlc_exit"))
-                            .flatten()
-                            .map(|ctrl_c| ctrl_c.is_true())
-                            .unwrap_or(false); // default behavior is to allow CTRL-C spamming similar to other shells
-
-                        if !config_ctrlc_exit {
-                            continue;
-                        }
-
-                        if ctrlcbreak {
-                            std::process::exit(0);
-                        } else {
-                            context.with_host(|host| host.stdout("CTRL-C pressed (again to quit)"));
-                            ctrlcbreak = true;
-                            continue;
-                        }
+                        println!("got a CtrlC");
                     }
 
                     LineResult::CtrlD => {
                         println!("got a CtrlD");
-                        context.shell_manager.remove_at_current();
-                        if context.shell_manager.is_empty() {
-                            break;
-                        }
                     }
 
                     LineResult::Break => {
                         break;
                     }
                 }
-                ctrlcbreak = false;
             }
 
             Signal::CtrlL => {
