@@ -1,3 +1,7 @@
+### Changes
+
+Change the history command in reedline from **history to rlh** so as not to interfere with the nushell history command.
+
 # reedline `\|/`
 
 A readline replacement written in Rust
