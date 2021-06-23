@@ -4,7 +4,10 @@ use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, Ev
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
-use reedline::{DefaultPrompt, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
+use reedline::{
+    DefaultPrompt, History, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
+    HISTORY_SIZE,
+};
 
 #[allow(unused_imports)]
 use nu_data::config;
@@ -129,7 +132,18 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
         let _prompt = "> ".to_string();
         let mut _initial_command = Some(String::new());
 
-        let mut line_editor = Reedline::new();
+        //      No History File
+        //      let mut line_editor = Reedline::new();
+
+        let mut line_editor = match std::env::var("REEDLINE_HISTFILE") {
+            Ok(histfile) if !histfile.is_empty() => {
+                // TODO: Allow change of capacity and don't unwrap
+                let history = History::with_file(HISTORY_SIZE, histfile.into()).unwrap();
+                Reedline::with_history(history)
+            }
+            _ => Reedline::new(),
+        };
+
         let prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
 
         let sig = line_editor.read_line(&prompt)?;
@@ -139,6 +153,11 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
                 break;
             }
             Signal::Success(buffer) => {
+                if buffer.trim() == "rlh" {
+                    line_editor.print_history()?;
+                    continue;
+                }
+
                 //println!("We processed: {}", buffer);
                 let line = process_script(&buffer, &context, false, 0, true);
                 // you need this next line here to flush the stdout cache
