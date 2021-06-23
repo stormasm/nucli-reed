@@ -8,7 +8,7 @@ pub mod app;
 mod cli;
 //#[cfg(feature = "rustyline-support")]
 //mod keybinding;
-mod line_editor;
+//mod line_editor;
 //#[cfg(feature = "rustyline-support")]
 //mod shell;
 

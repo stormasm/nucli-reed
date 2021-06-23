@@ -1,4 +1,4 @@
-use crate::line_editor::configure_ctrl_c;
+//use crate::line_editor::configure_ctrl_c;
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
 #[allow(unused_imports)]
@@ -66,7 +66,7 @@ pub fn run_script_file(
     }
 
     let _ = register_plugins(&context);
-    let _ = configure_ctrl_c(&context);
+    //    let _ = configure_ctrl_c(&context);
 
     let script = options
         .scripts
