@@ -1,6 +1,8 @@
 ### Changes
 
-Change the history command in reedline from **history to rlh** so as not to interfere with the nushell history command.
+* Change the history command
+* from **history to rlh**
+* so as not to interfere with the nushell history command.
 
 # reedline `\|/`
 
