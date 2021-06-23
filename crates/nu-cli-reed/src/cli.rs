@@ -1,4 +1,3 @@
-//use crate::line_editor::configure_ctrl_c;
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
 #[allow(unused_imports)]
@@ -13,7 +12,6 @@ use reedline::{
 use nu_data::config;
 use nu_source::{Tag, Text};
 use nu_stream::InputStream;
-//use std::ffi::{OsStr, OsString};
 #[allow(unused_imports)]
 use std::sync::atomic::Ordering;
 
@@ -124,9 +122,6 @@ pub fn cli(
     loop {
         let _prompt = "> ".to_string();
         let mut _initial_command = Some(String::new());
-
-        //      No History File
-        //      let mut line_editor = Reedline::new();
 
         let mut line_editor = match std::env::var("REEDLINE_HISTFILE") {
             Ok(histfile) if !histfile.is_empty() => {

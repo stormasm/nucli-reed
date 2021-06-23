@@ -6,13 +6,6 @@ extern crate quickcheck_macros;
 
 pub mod app;
 mod cli;
-//#[cfg(feature = "rustyline-support")]
-//mod keybinding;
-//mod line_editor;
-//#[cfg(feature = "rustyline-support")]
-//mod shell;
-
-//#[cfg(feature = "rustyline-support")]
 pub use crate::cli::cli;
 
 pub use crate::app::App;
