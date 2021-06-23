@@ -23,6 +23,19 @@ The main features that works is history...  There are obviously no completions a
 
 There are two histories ---- the nushell history and the reedline history [the reedline history uses a command rlh] which is a hack as I didn't want to have to modify any other crates in nushell.
 
+### How to run the code
+
+```rust
+cargo run
+```
+
+### How to run the example code
+
+```rust
+cargo run --example reed
+cargo run --example repl
+```
+
 ### Integrate reedline into nushell
 
 For the initial code we use this commit point:
