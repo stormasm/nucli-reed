@@ -1,5 +1,5 @@
 use nu_engine::EvaluationContext;
-use nu_errors::ShellError;
+//use nu_errors::ShellError;
 use std::error::Error;
 
 #[allow(unused_imports)]

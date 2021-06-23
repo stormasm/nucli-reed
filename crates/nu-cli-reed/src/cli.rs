@@ -13,7 +13,7 @@ use reedline::{
 use nu_data::config;
 use nu_source::{Tag, Text};
 use nu_stream::InputStream;
-use std::ffi::{OsStr, OsString};
+//use std::ffi::{OsStr, OsString};
 #[allow(unused_imports)]
 use std::sync::atomic::Ordering;
 
@@ -82,14 +82,14 @@ pub fn cli(
     context: EvaluationContext,
     options: super::app::CliOptions,
 ) -> Result<(), Box<dyn Error>> {
-
     if let Some(cfg) = options.config {
         load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
     } else {
         load_global_cfg(&context);
     }
 
-    let (skip_welcome_message, _prompt) = if let Some(cfg) = &context.configs().lock().global_config {
+    let (skip_welcome_message, _prompt) = if let Some(cfg) = &context.configs().lock().global_config
+    {
         (
             cfg.var("skip_welcome_message")
                 .map(|x| x.is_true())
