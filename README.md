@@ -1,4 +1,8 @@
 
+#### Changelog
+
+* This should be the final commit for nushell **0.32.0**
+
 #### Update
 
 So we are now successfully talking to nushell.   
