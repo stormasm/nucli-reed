@@ -2,11 +2,12 @@
 ### nu-cli-reed
 
 I have developed a nushell cli that depends on
-[reedline](https://github.com/jonathandturner/reedline) instead of [rustyline](https://github.com/kkawakam/rustyline).
+[reedline](https://github.com/jonathandturner/reedline) instead of [rustyline](https://github.com/kkawakam/rustyline) and developed
+a nu crate called nu-cli-reed.
 
 Every time a new release of nushell comes out I update the cli
 code with the latest nu-cli crate and then remove all of the
-dependencies on rustyline.
+dependencies on rustyline and add back in the reedline code.
 
 This code is packaged as a nu crate called **nu-cli-reed**.
 
