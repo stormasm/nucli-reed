@@ -1,4 +1,4 @@
-//use crate::line_editor::configure_ctrl_c;
+use crate::line_editor::configure_ctrl_c;
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
 #[allow(unused_imports)]
@@ -26,77 +26,70 @@ use std::error::Error;
 use std::iter::Iterator;
 use std::path::PathBuf;
 
-pub struct Options {
-    pub config: Option<OsString>,
-    pub stdin: bool,
-    pub scripts: Vec<NuScript>,
-    pub save_history: bool,
-}
+pub fn search_paths() -> Vec<std::path::PathBuf> {
+    use std::env;
 
-impl Default for Options {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+    let mut search_paths = Vec::new();
 
-impl Options {
-    pub fn new() -> Self {
-        Self {
-            config: None,
-            stdin: false,
-            scripts: vec![],
-            save_history: true,
+    // Automatically add path `nu` is in as a search path
+    if let Ok(exe_path) = env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            search_paths.push(exe_dir.to_path_buf());
         }
     }
-}
 
-pub struct NuScript {
-    pub filepath: Option<OsString>,
-    pub contents: String,
-}
-
-impl NuScript {
-    pub fn code<'a>(content: impl Iterator<Item = &'a str>) -> Result<Self, ShellError> {
-        let text = content
-            .map(|x| x.to_string())
-            .collect::<Vec<String>>()
-            .join("\n");
-
-        Ok(Self {
-            filepath: None,
-            contents: text,
-        })
+    if let Ok(config) = nu_data::config::config(Tag::unknown()) {
+        if let Some(Value {
+            value: UntaggedValue::Table(pipelines),
+            ..
+        }) = config.get("plugin_dirs")
+        {
+            for pipeline in pipelines {
+                if let Ok(plugin_dir) = pipeline.as_string() {
+                    search_paths.push(PathBuf::from(plugin_dir));
+                }
+            }
+        }
     }
 
-    pub fn get_code(&self) -> &str {
-        &self.contents
-    }
-
-    pub fn source_file(path: &OsStr) -> Result<Self, ShellError> {
-        use std::fs::File;
-        use std::io::Read;
-
-        let path = path.to_os_string();
-        let mut file = File::open(&path)?;
-        let mut buffer = String::new();
-
-        file.read_to_string(&mut buffer)?;
-
-        Ok(Self {
-            filepath: Some(path),
-            contents: buffer,
-        })
-    }
+    search_paths
 }
 
-pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
+pub fn run_script_file(
+    context: EvaluationContext,
+    options: super::app::CliOptions,
+) -> Result<(), ShellError> {
     if let Some(cfg) = options.config {
         load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
     } else {
         load_global_cfg(&context);
     }
 
-    let (skip_welcome_message, _prompt) = if let Some(cfg) = &context.configs.lock().global_config {
+    let _ = register_plugins(&context);
+    let _ = configure_ctrl_c(&context);
+
+    let script = options
+        .scripts
+        .get(0)
+        .ok_or_else(|| ShellError::unexpected("Nu source code not available"))?;
+
+    run_script_standalone(script.get_code().to_string(), options.stdin, &context, true)?;
+
+    Ok(())
+}
+
+pub fn cli(
+    context: EvaluationContext,
+    options: super::app::CliOptions,
+) -> Result<(), Box<dyn Error>> {
+
+    if let Some(cfg) = options.config {
+        load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
+    } else {
+        load_global_cfg(&context);
+    }
+
+    let (skip_welcome_message, _prompt) = if let Some(cfg) = &context.configs().lock().global_config {
         (
             cfg.var("skip_welcome_message")
                 .map(|x| x.is_true())
@@ -119,7 +112,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     if !skip_welcome_message {
         println!(
             "Welcome to Nushell {} (type 'help' for more info)",
-            clap::crate_version!()
+            nu_command::commands::core_version()
         );
     }
 
@@ -175,7 +168,7 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
 
                     LineResult::Error(_line, err) => {
                         context
-                            .host
+                            .host()
                             .lock()
                             .print_err(err, &Text::from(session_text.clone()));
                         maybe_print_errors(&context, Text::from(session_text.clone()));
@@ -203,65 +196,17 @@ pub fn cli(context: EvaluationContext, options: Options) -> Result<(), Box<dyn E
     Ok(())
 }
 
-pub fn search_paths() -> Vec<std::path::PathBuf> {
-    use std::env;
-
-    let mut search_paths = Vec::new();
-
-    // Automatically add path `nu` is in as a search path
-    if let Ok(exe_path) = env::current_exe() {
-        if let Some(exe_dir) = exe_path.parent() {
-            search_paths.push(exe_dir.to_path_buf());
-        }
-    }
-
-    if let Ok(config) = nu_data::config::config(Tag::unknown()) {
-        if let Some(Value {
-            value: UntaggedValue::Table(pipelines),
-            ..
-        }) = config.get("plugin_dirs")
-        {
-            for pipeline in pipelines {
-                if let Ok(plugin_dir) = pipeline.as_string() {
-                    search_paths.push(PathBuf::from(plugin_dir));
-                }
-            }
-        }
-    }
-
-    search_paths
-}
-
-pub fn run_script_file(context: EvaluationContext, options: Options) -> Result<(), Box<dyn Error>> {
-    if let Some(cfg) = options.config {
-        load_cfg_as_global_cfg(&context, PathBuf::from(cfg));
-    } else {
-        load_global_cfg(&context);
-    }
-
-    let _ = register_plugins(&context);
-
-    let script = options
-        .scripts
-        .get(0)
-        .ok_or_else(|| ShellError::unexpected("Nu source code not available"))?;
-
-    run_script_standalone(script.get_code().to_string(), options.stdin, &context, true)?;
-
-    Ok(())
-}
-
 pub fn load_local_cfg_if_present(context: &EvaluationContext) {
     trace!("Loading local cfg if present");
-    match config::loadable_cfg_exists_in_dir(PathBuf::from(context.shell_manager.path())) {
+    match config::loadable_cfg_exists_in_dir(PathBuf::from(context.shell_manager().path())) {
         Ok(Some(cfg_path)) => {
             if let Err(err) = context.load_config(&ConfigPath::Local(cfg_path)) {
-                context.host.lock().print_err(err, &Text::from(""))
+                context.host().lock().print_err(err, &Text::from(""))
             }
         }
         Err(e) => {
             //Report error while checking for local cfg file
-            context.host.lock().print_err(e, &Text::from(""))
+            context.host().lock().print_err(e, &Text::from(""))
         }
         Ok(None) => {
             //No local cfg file present in start dir
@@ -271,7 +216,7 @@ pub fn load_local_cfg_if_present(context: &EvaluationContext) {
 
 fn load_cfg_as_global_cfg(context: &EvaluationContext, path: PathBuf) {
     if let Err(err) = context.load_config(&ConfigPath::Global(path)) {
-        context.host.lock().print_err(err, &Text::from(""));
+        context.host().lock().print_err(err, &Text::from(""));
     }
 }
 
@@ -281,7 +226,7 @@ pub fn load_global_cfg(context: &EvaluationContext) {
             load_cfg_as_global_cfg(context, path);
         }
         Err(e) => {
-            context.host.lock().print_err(e, &Text::from(""));
+            context.host().lock().print_err(e, &Text::from(""));
         }
     }
 }
@@ -309,7 +254,7 @@ pub fn parse_and_eval(line: &str, ctx: &EvaluationContext) -> Result<String, She
 
     // TODO ensure the command whose examples we're testing is actually in the pipeline
     ctx.scope.enter_scope();
-    let (classified_block, err) = nu_parser::parse(&line, 0, &ctx.scope);
+    let (classified_block, err) = nu_parser::parse(line, 0, &ctx.scope);
     if let Some(err) = err {
         ctx.scope.exit_scope();
         return Err(err.into());
