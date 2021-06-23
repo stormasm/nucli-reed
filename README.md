@@ -17,6 +17,12 @@ along with a code snapshot of an internal reedline crate.
 Because a reedline crate is not yet published I reference my own
 internal reedline crate.
 
+### History command called rlh
+
+The main features that works is history...  There are obviously no completions as in nushell that currently depends on rustyline.
+
+There are two histories ---- the nushell history and the reedline history [the reedline history uses a command rlh] which is a hack as I didn't want to have to modify any other crates in nushell.
+
 ### Integrate reedline into nushell
 
 For the initial code we use this commit point:
