@@ -45,6 +45,8 @@ hamcrest2 = "0.3.0"
 
 [features]
 ctrlc-support = ["nu-cli-reed/ctrlc", "nu-command/ctrlc"]
+executable-support = ["nu-cli-reed/executable-support"]
+
 #directories-support = [
 #    "nu-cli-reed/directories-next",
 #    "nu-cli-reed/dirs-next",
@@ -60,6 +62,7 @@ default = [
 #    "directories-support",
     "ctrlc-support",
     "rustyline-support",
+    "executable-support"
 ]
 
 stable = ["default"]

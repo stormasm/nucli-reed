@@ -128,5 +128,6 @@ quickcheck_macros = "1.0.0"
 default = ["shadow-rs"]
 clipboard-cli = ["arboard"]
 rustyline-support = ["rustyline", "nu-engine/rustyline-support"]
+executable-support = ["nu-completion/is_executable"]
 stable = []
 trash-support = ["trash"]
