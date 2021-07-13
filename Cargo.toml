@@ -10,7 +10,7 @@ license = "MIT"
 name = "nucli-reed"
 readme = "README.md"
 repository = "https://github.com/stormasm/nucli-reed"
-version = "0.33.0"
+version = "0.34.0"
 
 [workspace]
 members = ["crates/*/"]
@@ -18,19 +18,19 @@ members = ["crates/*/"]
 # only one of the dependencies [nu-cli-reed or nu-cli-rusty] can be on
 
 [dependencies]
-nu-cli-reed = { version = "0.33.0", path = "./crates/nu-cli-reed", default-features = false }
+nu-cli-reed = { version = "0.34.0", path = "./crates/nu-cli-reed", default-features = false }
 reedline = { version = "0.1.0", path = "./crates/reedline", default-features = false }
 crossterm = { version = "0.19.0", features = ["serde"] }
 
-nu-command = "0.33.0"
-nu-data = "0.33.0"
-nu-engine = "0.33.0"
-nu-errors = "0.33.0"
-nu-parser = "0.33.0"
-nu-plugin = "0.33.0"
-nu-protocol = "0.33.0"
-nu-source = "0.33.0"
-nu-value-ext = "0.33.0"
+nu-command = "0.34.0"
+nu-data = "0.34.0"
+nu-engine = "0.34.0"
+nu-errors = "0.34.0"
+nu-parser = "0.34.0"
+nu-plugin = "0.34.0"
+nu-protocol = "0.34.0"
+nu-source = "0.34.0"
+nu-value-ext = "0.34.0"
 
 # Required to bootstrap the main binary
 ctrlc = { version="3.1.7", optional=true }
@@ -38,14 +38,14 @@ futures = { version="0.3.12", features=["compat", "io-compat"] }
 itertools = "0.10.0"
 
 [dev-dependencies]
-nu-test-support = "0.33.0"
+nu-test-support = "0.34.0"
 dunce = "1.0.1"
 serial_test = "0.5.1"
 hamcrest2 = "0.3.0"
 
 [features]
 ctrlc-support = ["nu-cli-reed/ctrlc", "nu-command/ctrlc"]
-executable-support = ["nu-cli-reed/executable-support"]
+#executable-support = ["nu-cli-reed/executable-support"]
 
 #directories-support = [
 #    "nu-cli-reed/directories-next",
@@ -62,7 +62,7 @@ default = [
 #    "directories-support",
     "ctrlc-support",
     "rustyline-support",
-    "executable-support"
+#    "executable-support"
 ]
 
 stable = ["default"]

@@ -5,7 +5,7 @@ description = "CLI for nushell"
 edition = "2018"
 license = "MIT"
 name = "nu-cli-reed"
-version = "0.33.0"
+version = "0.34.0"
 
 [lib]
 doctest = false
@@ -13,22 +13,22 @@ doctest = false
 [dependencies]
 reedline = { version = "0.1.0", path = "../reedline"}
 
-nu-completion = "0.33.0"
-nu-command = "0.33.0"
-nu-data = "0.33.0"
-nu-engine = "0.33.0"
-nu-errors = "0.33.0"
-nu-json = "0.33.0"
-nu-parser = "0.33.0"
-nu-plugin = "0.33.0"
-nu-protocol = "0.33.0"
-nu-source = "0.33.0"
-nu-stream = "0.33.0"
-nu-table = "0.33.0"
-nu-test-support = "0.33.0"
-nu-value-ext = "0.33.0"
-nu-ansi-term = "0.33.0"
-nu-pretty-hex = "0.33.0"
+nu-completion = "0.34.0"
+nu-command = "0.34.0"
+nu-data = "0.34.0"
+nu-engine = "0.34.0"
+nu-errors = "0.34.0"
+nu-json = "0.34.0"
+nu-parser = "0.34.0"
+nu-plugin = "0.34.0"
+nu-protocol = "0.34.0"
+nu-source = "0.34.0"
+nu-stream = "0.34.0"
+nu-table = "0.34.0"
+nu-test-support = "0.34.0"
+nu-value-ext = "0.34.0"
+nu-ansi-term = "0.34.0"
+nu-pretty-hex = "0.34.0"
 
 Inflector = "0.11"
 arboard = { version="1.1.0", optional=true }
@@ -128,6 +128,5 @@ quickcheck_macros = "1.0.0"
 default = ["shadow-rs"]
 clipboard-cli = ["arboard"]
 rustyline-support = ["rustyline", "nu-engine/rustyline-support"]
-executable-support = ["nu-completion/is_executable"]
 stable = []
 trash-support = ["trash"]
