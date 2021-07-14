@@ -1,9 +1,9 @@
-use reedline::{DefaultPrompt, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
+use reedline::{DefaultPrompt, Reedline, Signal};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut line_editor = Reedline::new();
-    let prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
+    let prompt = DefaultPrompt::new(1);
 
     loop {
         let sig = line_editor.read_line(&prompt)?;

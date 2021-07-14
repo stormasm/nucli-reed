@@ -1,11 +1,13 @@
+use crossterm::event::{KeyCode, KeyModifiers};
+
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
 use reedline::{
-    DefaultPrompt, History, Reedline, Signal, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
-    HISTORY_SIZE,
+    default_emacs_keybindings, DefaultCompleter, DefaultHighlighter, DefaultPrompt,
+    DefaultTabHandler, EditCommand, FileBackedHistory, Reedline, Signal,
 };
 
 #[allow(unused_imports)]
@@ -123,16 +125,49 @@ pub fn cli(
         let _prompt = "> ".to_string();
         let mut _initial_command = Some(String::new());
 
-        let mut line_editor = match std::env::var("REEDLINE_HISTFILE") {
-            Ok(histfile) if !histfile.is_empty() => {
-                // TODO: Allow change of capacity and don't unwrap
-                let history = History::with_file(HISTORY_SIZE, histfile.into()).unwrap();
-                Reedline::with_history(history)
-            }
-            _ => Reedline::new(),
-        };
+        let mut keybindings = default_emacs_keybindings();
+        keybindings.add_binding(
+            KeyModifiers::ALT,
+            KeyCode::Char('m'),
+            vec![EditCommand::BackspaceWord],
+        );
 
-        let prompt = DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1);
+        let history = FileBackedHistory::with_file(5, "history.txt".into())?;
+        let commands = vec![
+            "test".into(),
+            "hello world".into(),
+            "hello world reedline".into(),
+            "this is reedline crate".into(),
+        ];
+
+        let mut line_editor = Reedline::new()
+            .with_history(Box::new(history))?
+            .with_edit_mode(reedline::EditMode::Emacs)
+            /*
+                        .with_edit_mode(if vi_mode {
+                            reedline::EditMode::ViNormal
+                        } else {
+                            reedline::EditMode::Emacs
+                        })
+            */
+            .with_keybindings(keybindings)
+            .with_highlighter(Box::new(DefaultHighlighter::new(commands.clone())))
+            .with_tab_handler(Box::new(DefaultTabHandler::default().with_completer(
+                Box::new(DefaultCompleter::new_with_wordlen(commands, 2)),
+            )));
+
+        /*
+                let mut line_editor = match std::env::var("REEDLINE_HISTFILE") {
+                    Ok(histfile) if !histfile.is_empty() => {
+                        // TODO: Allow change of capacity and don't unwrap
+                        let history = History::with_file(HISTORY_SIZE, histfile.into()).unwrap();
+                        Reedline::with_history(history)
+                    }
+                    _ => Reedline::new(),
+                };
+        */
+
+        let prompt = DefaultPrompt::new(1);
 
         let sig = line_editor.read_line(&prompt)?;
         match sig {
