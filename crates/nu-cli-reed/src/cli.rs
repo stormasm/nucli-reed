@@ -132,7 +132,7 @@ pub fn cli(
             vec![EditCommand::BackspaceWord],
         );
 
-        let history = FileBackedHistory::with_file(5, "history.txt".into())?;
+        let history = FileBackedHistory::with_file(1000, "history.txt".into())?;
         let commands = vec![
             "test".into(),
             "hello world".into(),
@@ -143,29 +143,12 @@ pub fn cli(
         let mut line_editor = Reedline::new()
             .with_history(Box::new(history))?
             .with_edit_mode(reedline::EditMode::Emacs)
-            /*
-                        .with_edit_mode(if vi_mode {
-                            reedline::EditMode::ViNormal
-                        } else {
-                            reedline::EditMode::Emacs
-                        })
-            */
+            //          .with_edit_mode(reedline::EditMode::ViNormal)
             .with_keybindings(keybindings)
             .with_highlighter(Box::new(DefaultHighlighter::new(commands.clone())))
             .with_tab_handler(Box::new(DefaultTabHandler::default().with_completer(
                 Box::new(DefaultCompleter::new_with_wordlen(commands, 2)),
             )));
-
-        /*
-                let mut line_editor = match std::env::var("REEDLINE_HISTFILE") {
-                    Ok(histfile) if !histfile.is_empty() => {
-                        // TODO: Allow change of capacity and don't unwrap
-                        let history = History::with_file(HISTORY_SIZE, histfile.into()).unwrap();
-                        Reedline::with_history(history)
-                    }
-                    _ => Reedline::new(),
-                };
-        */
 
         let prompt = DefaultPrompt::new(1);
 
@@ -180,12 +163,7 @@ pub fn cli(
                     line_editor.print_history()?;
                     continue;
                 }
-
-                //println!("We processed: {}", buffer);
                 let line = process_script(&buffer, &context, false, 0, true);
-                // you need this next line here to flush the stdout cache
-                // otherwise date now or version | get version does not work
-                // println!("");
 
                 match line {
                     LineResult::Success(_line) => {
