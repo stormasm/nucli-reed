@@ -43,9 +43,7 @@ For the initial code we use this commit point:
 ### Working commit points
 
 ##### July 13, 2021, version 0.34.0
-
 [e95d8465](https://github.com/jntrnr/reedline/commit/e95d8465)
 
 ##### June 13, 2021, version 0.33.0
-
 [7257797](https://github.com/jonathandturner/reedline/commit/725779728c078fa62ee7b16a6589ae4cc03ee44a)
