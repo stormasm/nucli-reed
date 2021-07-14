@@ -15,7 +15,7 @@ pub enum Signal {
 /// Editing actions which can be mapped to key bindings.
 ///
 /// Executed by [`Reedline::run_edit_commands()`]
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum EditCommand {
     MoveToStart,
     MoveToEnd,
@@ -37,10 +37,21 @@ pub enum EditCommand {
     CutToEnd,
     CutWordLeft,
     CutWordRight,
-    InsertCutBuffer,
+    PasteCutBuffer,
     UppercaseWord,
     LowercaseWord,
     CapitalizeChar,
     SwapWords,
     SwapGraphemes,
+    EnterViNormal,
+    EnterViInsert,
+    ViCommandFragment(char),
+}
+
+/// The edit mode the reedline is currently in
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+pub enum EditMode {
+    Emacs,
+    ViNormal,
+    ViInsert,
 }

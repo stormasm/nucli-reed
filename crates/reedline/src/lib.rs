@@ -40,7 +40,7 @@
 //! * `[x]` Configurable prompt
 //! * `[x]` Basic EMACS-style editing shortcuts.
 //! * `[ ]` Advanced multiline unicode aware editing.
-//! * `[ ]` Configurable keybindings.
+//! * `[x]` Configurable keybindings.
 //! * `[x]` Basic system integration with clipboard or optional stored history file.
 //! * `[ ]` Content aware highlighting or validation.
 //! * `[ ]` Autocompletion.
@@ -54,22 +54,39 @@
 //! * [rustyline](https://crates.io/crates/rustyline)
 mod clip_buffer;
 
+mod text_manipulation;
+
 mod enums;
-pub(crate) use enums::EditCommand;
-pub use enums::Signal;
+pub use enums::{EditCommand, EditMode, Signal};
+
+mod painter;
 
 mod engine;
 pub use engine::Reedline;
 
 mod history;
-pub use history::{History, HISTORY_SIZE};
-
-mod history_search;
+pub use history::{FileBackedHistory, History, HISTORY_SIZE};
 
 mod prompt;
-pub use prompt::{DefaultPrompt, Prompt, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR};
+pub use prompt::{
+    DefaultPrompt, Prompt, PromptEditMode, PromptHistorySearch, PromptHistorySearchStatus,
+    PromptViMode, DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR,
+};
 
 mod line_buffer;
 
 mod keybindings;
-pub use keybindings::default_keybindings;
+pub use keybindings::default_emacs_keybindings;
+
+mod syntax_highlighting_fileio;
+
+mod vi_engine;
+pub use vi_engine::ViEngine;
+
+mod highlighter;
+pub use highlighter::{DefaultHighlighter, Highlighter};
+
+mod styled_text;
+
+mod completer;
+pub use completer::{Completer, DefaultCompleter, DefaultTabHandler, Span, TabHandler};

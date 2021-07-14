@@ -1,47 +1,118 @@
-use chrono::Local;
-use crossterm::style::Color;
-use std::env;
+use {
+    chrono::Local,
+    crossterm::style::Color,
+    std::{borrow::Cow, env},
+};
 
 pub static DEFAULT_PROMPT_COLOR: Color = Color::Blue;
 pub static DEFAULT_PROMPT_INDICATOR: &str = "〉";
+pub static DEFAULT_VI_INSERT_PROMPT_INDICATOR: &str = ": ";
+pub static DEFAULT_VI_VISUAL_PROMPT_INDICATOR: &str = "v ";
+pub static DEFAULT_MULTILINE_INDICATOR: &str = "::: ";
+
+pub enum PromptHistorySearchStatus {
+    Passing,
+    Failing,
+}
+
+pub struct PromptHistorySearch {
+    pub status: PromptHistorySearchStatus,
+    pub term: String,
+}
+
+impl PromptHistorySearch {
+    pub fn new(status: PromptHistorySearchStatus, search_term: String) -> Self {
+        PromptHistorySearch {
+            status,
+            term: search_term,
+        }
+    }
+}
+
+pub enum PromptEditMode {
+    Default,
+    Emacs,
+    Vi(PromptViMode),
+    Custom(String),
+}
+
+pub enum PromptViMode {
+    Normal,
+    Insert,
+    Visual,
+}
 
 /// API to provide a custom prompt.
 ///
-/// Implementors have to provide [`String`]-based content which will be
+/// Implementors have to provide [`str`]-based content which will be
 /// displayed before the `LineBuffer` is drawn.
 pub trait Prompt {
     /// Provide content off the full prompt. May use a line above the entry buffer that fits into `screen_width`.
-    fn render_prompt(&self, screen_width: usize) -> String;
-    /// Provide content of only the minimal prompt indicator in front of the buffer.
-    fn render_prompt_indicator(&self) -> String;
-    fn get_prompt_color(&self) -> Color;
+    fn render_prompt(&self, screen_width: usize) -> Cow<str>;
+    /// Render the default prompt indicator
+    fn render_prompt_indicator(&self, prompt_mode: PromptEditMode) -> Cow<str>;
+    /// Render the default prompt indicator
+    fn render_prompt_multiline_indicator(&self) -> Cow<str>;
+    /// Render the default prompt indicator
+    fn render_prompt_history_search_indicator(
+        &self,
+        history_search: PromptHistorySearch,
+    ) -> Cow<str>;
+    /// Render the vi insert mode prompt indicator
+    /// Get back the prompt color
+    fn get_prompt_color(&self) -> Color {
+        DEFAULT_PROMPT_COLOR
+    }
 }
 
 impl Prompt for DefaultPrompt {
-    fn render_prompt(&self, screen_width: usize) -> String {
+    fn render_prompt(&self, screen_width: usize) -> Cow<str> {
         DefaultPrompt::render_prompt(self, screen_width)
     }
 
-    fn render_prompt_indicator(&self) -> String {
-        self.prompt_indicator.clone()
+    fn render_prompt_indicator(&self, edit_mode: PromptEditMode) -> Cow<str> {
+        match edit_mode {
+            PromptEditMode::Default => DEFAULT_PROMPT_INDICATOR.into(),
+            PromptEditMode::Emacs => DEFAULT_PROMPT_INDICATOR.into(),
+            PromptEditMode::Vi(vi_mode) => match vi_mode {
+                PromptViMode::Normal => DEFAULT_PROMPT_INDICATOR.into(),
+                PromptViMode::Insert => DEFAULT_VI_INSERT_PROMPT_INDICATOR.into(),
+                PromptViMode::Visual => DEFAULT_VI_VISUAL_PROMPT_INDICATOR.into(),
+            },
+            PromptEditMode::Custom(str) => self.default_wrapped_custom_string(str).into(),
+        }
     }
 
-    fn get_prompt_color(&self) -> Color {
-        self.prompt_color
+    fn render_prompt_multiline_indicator(&self) -> Cow<str> {
+        Cow::Borrowed(DEFAULT_MULTILINE_INDICATOR)
+    }
+
+    fn render_prompt_history_search_indicator(
+        &self,
+        history_search: PromptHistorySearch,
+    ) -> Cow<str> {
+        let prefix = match history_search.status {
+            PromptHistorySearchStatus::Passing => "",
+            PromptHistorySearchStatus::Failing => "failing ",
+        };
+        // NOTE: magic strings, givent there is logic on how these compose I am not sure if it
+        // is worth extracting in to static constant
+        Cow::Owned(format!(
+            "({}reverse-search: {})",
+            prefix, history_search.term
+        ))
     }
 }
 
 impl Default for DefaultPrompt {
     fn default() -> Self {
-        DefaultPrompt::new(DEFAULT_PROMPT_COLOR, DEFAULT_PROMPT_INDICATOR, 1)
+        DefaultPrompt::new(1)
     }
 }
 
 /// Simple two-line [`Prompt`] displaying the current working directory and the time above the entry line.
+#[derive(Clone)]
 pub struct DefaultPrompt {
-    prompt_color: Color,
-    // The prompt symbol like >
-    prompt_indicator: String,
     // The minimum number of line buffer character space between the
     // the left prompt and the right prompt. When this encroaches
     // into the right side prompt, we should not show the right
@@ -50,22 +121,14 @@ pub struct DefaultPrompt {
 }
 
 impl DefaultPrompt {
-    pub fn new(
-        prompt_color: Color,
-        prompt_indicator: &str,
-        min_center_spacing: u16,
-    ) -> DefaultPrompt {
-        DefaultPrompt {
-            prompt_color,
-            prompt_indicator: prompt_indicator.to_string(),
-            min_center_spacing,
-        }
+    pub fn new(min_center_spacing: u16) -> DefaultPrompt {
+        DefaultPrompt { min_center_spacing }
     }
 
     // NOTE: This method currently assumes all characters are 1 column wide. This should be
     // ok for now since we're just displaying the current directory and date/time, which are
     // unlikely to contain characters that use 2 columns.
-    pub fn render_prompt(&self, cols: usize) -> String {
+    fn render_prompt(&self, cols: usize) -> Cow<str> {
         let mut prompt_str = String::new();
 
         let mut left_prompt = get_working_dir().unwrap_or_else(|_| String::from("no path"));
@@ -85,9 +148,11 @@ impl DefaultPrompt {
             prompt_str.push_str(&right_padding);
         }
 
-        prompt_str.push_str(&self.prompt_indicator);
+        Cow::Owned(prompt_str)
+    }
 
-        prompt_str
+    fn default_wrapped_custom_string(&self, str: String) -> String {
+        format!("({})", str)
     }
 }
 

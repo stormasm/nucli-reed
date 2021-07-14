@@ -1,15 +1,17 @@
-use crate::EditCommand;
-use crossterm::event::{KeyCode, KeyModifiers};
-use serde::{Deserialize, Serialize};
+use {
+    crate::EditCommand,
+    crossterm::event::{KeyCode, KeyModifiers},
+    serde::{Deserialize, Serialize},
+};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Keybinding {
     modifier: KeyModifiers,
     key_code: KeyCode,
     edit_commands: Vec<EditCommand>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Keybindings {
     pub bindings: Vec<Keybinding>,
 }
@@ -53,7 +55,52 @@ impl Keybindings {
     }
 }
 
-pub fn default_keybindings() -> Keybindings {
+pub fn default_vi_normal_keybindings() -> Keybindings {
+    use KeyCode::*;
+
+    let mut keybindings = Keybindings::new();
+
+    keybindings.add_binding(
+        KeyModifiers::NONE,
+        Up,
+        vec![EditCommand::ViCommandFragment('k')],
+    );
+    keybindings.add_binding(
+        KeyModifiers::NONE,
+        Down,
+        vec![EditCommand::ViCommandFragment('j')],
+    );
+    keybindings.add_binding(
+        KeyModifiers::NONE,
+        Left,
+        vec![EditCommand::ViCommandFragment('h')],
+    );
+    keybindings.add_binding(
+        KeyModifiers::NONE,
+        Right,
+        vec![EditCommand::ViCommandFragment('l')],
+    );
+
+    keybindings
+}
+
+pub fn default_vi_insert_keybindings() -> Keybindings {
+    use KeyCode::*;
+
+    let mut keybindings = Keybindings::new();
+
+    keybindings.add_binding(KeyModifiers::NONE, Esc, vec![EditCommand::EnterViNormal]);
+    keybindings.add_binding(KeyModifiers::NONE, Up, vec![EditCommand::PreviousHistory]);
+    keybindings.add_binding(KeyModifiers::NONE, Down, vec![EditCommand::NextHistory]);
+    keybindings.add_binding(KeyModifiers::NONE, Left, vec![EditCommand::MoveLeft]);
+    keybindings.add_binding(KeyModifiers::NONE, Right, vec![EditCommand::MoveRight]);
+    keybindings.add_binding(KeyModifiers::NONE, Backspace, vec![EditCommand::Backspace]);
+    keybindings.add_binding(KeyModifiers::NONE, Delete, vec![EditCommand::Delete]);
+
+    keybindings
+}
+
+pub fn default_emacs_keybindings() -> Keybindings {
     use KeyCode::*;
 
     let mut keybindings = Keybindings::new();
@@ -83,7 +130,7 @@ pub fn default_keybindings() -> Keybindings {
     keybindings.add_binding(
         KeyModifiers::CONTROL,
         Char('y'),
-        vec![EditCommand::InsertCutBuffer],
+        vec![EditCommand::PasteCutBuffer],
     );
     keybindings.add_binding(
         KeyModifiers::CONTROL,
@@ -155,6 +202,12 @@ pub fn default_keybindings() -> Keybindings {
         vec![EditCommand::BackspaceWord],
     );
     keybindings.add_binding(KeyModifiers::ALT, Delete, vec![EditCommand::DeleteWord]);
+    keybindings.add_binding(
+        KeyModifiers::CONTROL,
+        Backspace,
+        vec![EditCommand::BackspaceWord],
+    );
+    keybindings.add_binding(KeyModifiers::CONTROL, Delete, vec![EditCommand::DeleteWord]);
     keybindings.add_binding(
         KeyModifiers::ALT,
         Char('u'),
