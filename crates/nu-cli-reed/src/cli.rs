@@ -122,9 +122,6 @@ pub fn cli(
     }
 
     loop {
-        let _prompt = "> ".to_string();
-        let mut _initial_command = Some(String::new());
-
         let mut keybindings = default_emacs_keybindings();
         keybindings.add_binding(
             KeyModifiers::ALT,
