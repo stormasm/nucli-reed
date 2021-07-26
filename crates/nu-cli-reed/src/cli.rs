@@ -2,8 +2,9 @@ use crossterm::event::{KeyCode, KeyModifiers};
 
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
 
+pub use crate::buffer::process_buffer;
 #[allow(unused_imports)]
-pub(crate) use nu_engine::script::{process_script, LineResult};
+pub(crate) use nu_engine::script::LineResult;
 
 use reedline::{
     default_emacs_keybindings, DefaultCompleter, DefaultHighlighter, DefaultPrompt,
@@ -160,7 +161,7 @@ pub fn cli(
                     line_editor.print_history()?;
                     continue;
                 }
-                let line = process_script(&buffer, &context, false, 0, true);
+                let line = process_buffer(&buffer, &context, false, 0, true);
 
                 match line {
                     LineResult::Success(_line) => {
