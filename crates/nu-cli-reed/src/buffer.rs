@@ -1,8 +1,5 @@
-use nu_engine::{
-    evaluate::internal::InternalIterator, maybe_print_errors, run_block, shell::CdArgs,
-};
+use nu_engine::{evaluate::internal::InternalIterator, run_block, shell::CdArgs};
 use nu_engine::{BufCodecReader, MaybeTextCodec, StringOrBinary};
-use nu_errors::ShellError;
 use nu_path::canonicalize;
 use nu_protocol::hir::{
     Call, ClassifiedCommand, Expression, ExternalRedirection, InternalCommand, Literal,
@@ -12,9 +9,9 @@ use nu_protocol::{Primitive, UntaggedValue, Value};
 use nu_stream::{InputStream, IntoInputStream};
 
 use log::{debug, trace};
-use nu_source::{AnchorLocation, Span, Tag, Tagged, Text};
+use nu_source::{AnchorLocation, Span, Tag, Tagged};
 use std::path::{Path, PathBuf};
-use std::{error::Error, sync::atomic::Ordering};
+use std::sync::atomic::Ordering;
 use std::{io::BufReader, iter::Iterator};
 
 use nu_engine::evaluation_context::EvaluationContext;
@@ -28,7 +25,8 @@ fn chomp_newline(s: &str) -> &str {
     }
 }
 
-/// Process the line by parsing the text to turn it into commands, classify those commands so that we understand what is being called in the pipeline, and then run this pipeline
+/// This is a replacement of nu_engine's process_script with the exact same
+/// input and output parameters
 pub fn process_buffer(
     script_text: &str,
     ctx: &EvaluationContext,
