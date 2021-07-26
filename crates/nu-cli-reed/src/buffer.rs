@@ -1,5 +1,7 @@
-use crate::{evaluate::internal::InternalIterator, maybe_print_errors, run_block, shell::CdArgs};
-use crate::{BufCodecReader, MaybeTextCodec, StringOrBinary};
+use nu_engine::{
+    evaluate::internal::InternalIterator, maybe_print_errors, run_block, shell::CdArgs,
+};
+use nu_engine::{BufCodecReader, MaybeTextCodec, StringOrBinary};
 use nu_errors::ShellError;
 use nu_path::canonicalize;
 use nu_protocol::hir::{
@@ -9,22 +11,14 @@ use nu_protocol::hir::{
 use nu_protocol::{Primitive, UntaggedValue, Value};
 use nu_stream::{InputStream, IntoInputStream};
 
-use crate::EvaluationContext;
 use log::{debug, trace};
 use nu_source::{AnchorLocation, Span, Tag, Tagged, Text};
 use std::path::{Path, PathBuf};
 use std::{error::Error, sync::atomic::Ordering};
 use std::{io::BufReader, iter::Iterator};
 
-#[derive(Debug)]
-pub enum LineResult {
-    Success(String),
-    Error(String, ShellError),
-    Break,
-    CtrlC,
-    CtrlD,
-    ClearHistory,
-}
+use nu_engine::evaluation_context::EvaluationContext;
+use nu_engine::script::LineResult;
 
 fn chomp_newline(s: &str) -> &str {
     if let Some(s) = s.strip_suffix('\n') {
