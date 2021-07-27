@@ -12,8 +12,8 @@ doctest = false
 
 [dependencies]
 reedline = { version = "0.1.0", path = "../reedline"}
+nu-completion = { version = "0.34.0", path = "../nu-completion"}
 
-nu-completion = "0.34.0"
 nu-command = "0.34.0"
 nu-data = "0.34.0"
 nu-engine = "0.34.0"
