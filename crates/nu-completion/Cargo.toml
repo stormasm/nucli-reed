@@ -1,0 +1,29 @@
+[package]
+authors = ["The Nu Project Contributors"]
+description = "Completions for nushell"
+edition = "2018"
+license = "MIT"
+name = "nu-completion"
+version = "0.34.1"
+
+[lib]
+doctest = false
+
+[dependencies]
+nu-data = "0.34.0"
+nu-engine = "0.34.0"
+nu-errors = "0.34.0"
+nu-parser = "0.34.0"
+nu-path = "0.34.0"
+nu-protocol = "0.34.0"
+nu-source = "0.34.0"
+nu-test-support = "0.34.0"
+
+dirs-next = "2.0.0"
+indexmap = { version="1.6.1", features=["serde-1"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+is_executable = "1.0.1"
+
+[dev-dependencies]
+parking_lot = "0.11.1"
