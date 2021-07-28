@@ -1,4 +1,9 @@
 
+### integrate_nucompleter
+
+This is a branch off of variable_completer... and we clean up and add
+shell.rs
+
 ### variable_completer
 
 This brings buffer.rs into the mix which is a replacement for script.rs
