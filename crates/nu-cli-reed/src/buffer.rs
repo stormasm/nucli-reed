@@ -25,7 +25,7 @@ pub fn process_buffer(
         let line = chomp_newline(script_text);
         println!("{}", line);
 
-        let helper = Helper::new(EvaluationContext::basic());
+        let helper = Helper::new(ctx.clone());
         let ctx = CompletionContext(ctx);
         let suggestions = helper.complete(line, 0, &ctx);
         println!("{:?}", suggestions);
