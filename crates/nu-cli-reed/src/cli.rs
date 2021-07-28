@@ -5,9 +5,12 @@ use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, Ev
 #[allow(unused_imports)]
 pub(crate) use nu_engine::script::{process_script, LineResult};
 
+use nu_ansi_term::{Color, Style};
+
 use reedline::{
-    default_emacs_keybindings, DefaultCompleter, DefaultHighlighter, DefaultPrompt,
-    DefaultTabHandler, EditCommand, FileBackedHistory, Reedline, Signal,
+    default_emacs_keybindings, DefaultCompleter, DefaultCompletionActionHandler,
+    DefaultHighlighter, DefaultHinter, DefaultPrompt, EditCommand, FileBackedHistory, Reedline,
+    Signal,
 };
 
 #[allow(unused_imports)]
@@ -129,23 +132,34 @@ pub fn cli(
             vec![EditCommand::BackspaceWord],
         );
 
-        let history = FileBackedHistory::with_file(1000, "history.txt".into())?;
+        let history = Box::new(FileBackedHistory::with_file(50, "history.txt".into())?);
         let commands = vec![
             "test".into(),
+            "clear".into(),
+            "exit".into(),
+            "history".into(),
+            "logout".into(),
             "hello world".into(),
             "hello world reedline".into(),
-            "this is reedline crate".into(),
+            "this is the reedline crate".into(),
         ];
 
+        let completer = Box::new(DefaultCompleter::new_with_wordlen(commands.clone(), 2));
+
         let mut line_editor = Reedline::new()
-            .with_history(Box::new(history))?
+            .with_history(history)?
             .with_edit_mode(reedline::EditMode::Emacs)
-            //          .with_edit_mode(reedline::EditMode::ViNormal)
             .with_keybindings(keybindings)
-            .with_highlighter(Box::new(DefaultHighlighter::new(commands.clone())))
-            .with_tab_handler(Box::new(DefaultTabHandler::default().with_completer(
-                Box::new(DefaultCompleter::new_with_wordlen(commands, 2)),
-            )));
+            .with_highlighter(Box::new(DefaultHighlighter::new(commands)))
+            .with_completion_action_handler(Box::new(
+                DefaultCompletionActionHandler::default().with_completer(completer.clone()),
+            ))
+            .with_hinter(Box::new(
+                DefaultHinter::default()
+                    .with_completer(completer) // or .with_history()
+                    // .with_inside_line()
+                    .with_style(Style::new().italic().fg(Color::LightGray)),
+            ));
 
         let prompt = DefaultPrompt::new(1);
 
