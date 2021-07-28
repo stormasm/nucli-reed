@@ -91,6 +91,7 @@ impl Candidate for &'_ str {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct CompletionSuggestion(Suggestion);
 
 impl Candidate for CompletionSuggestion {
