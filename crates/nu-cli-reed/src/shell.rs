@@ -25,7 +25,7 @@ impl Helper {
 }
 
 use nu_protocol::{SignatureRegistry, VariableRegistry};
-pub struct CompletionContext<'a>(&'a EvaluationContext);
+pub struct CompletionContext<'a>(pub &'a EvaluationContext);
 
 impl<'a> nu_completion::CompletionContext for CompletionContext<'a> {
     fn signature_registry(&self) -> &dyn SignatureRegistry {
