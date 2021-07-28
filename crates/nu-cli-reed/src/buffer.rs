@@ -1,6 +1,4 @@
 use crate::shell::{Completer, CompletionContext, Helper};
-// use crate::shell:CompletionSuggestion;
-
 use nu_engine::evaluation_context::EvaluationContext;
 use nu_engine::script::LineResult;
 
@@ -31,16 +29,6 @@ pub fn process_buffer(
         let ctx = CompletionContext(ctx);
         let suggestions = helper.complete(line, 0, &ctx);
         println!("{:?}", suggestions);
-
-        // let answer = suggestions.into_iter().map(CompletionSuggestion).collect();
-        // println!("{:?}",suggestions);
-
-        /*
-                let ctx = CompletionContext(&self.context);
-                let suggestions = self.completer.complete(line, pos, &ctx);
-                let answer = suggestions.into_iter().map(CompletionSuggestion).collect();
-        */
-
         LineResult::Success(line.to_string())
     }
 }
