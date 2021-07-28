@@ -1,6 +1,10 @@
 use nu_ansi_term::Color;
 use nu_completion::NuCompleter;
+
+use nu_completion::Suggestion;
+
 use nu_engine::{DefaultPalette, EvaluationContext, Painter};
+use nu_errors::ShellError;
 use nu_source::{Tag, Tagged};
 use std::borrow::Cow::{self, Owned};
 
@@ -21,7 +25,7 @@ impl Helper {
 }
 
 use nu_protocol::{SignatureRegistry, VariableRegistry};
-struct CompletionContext<'a>(&'a EvaluationContext);
+pub struct CompletionContext<'a>(&'a EvaluationContext);
 
 impl<'a> nu_completion::CompletionContext for CompletionContext<'a> {
     fn signature_registry(&self) -> &dyn SignatureRegistry {
@@ -47,9 +51,49 @@ impl<'a> AsRef<EvaluationContext> for CompletionContext<'a> {
     }
 }
 
-pub struct CompletionSuggestion(nu_completion::Suggestion);
+/// A completion candidate from rustyline this should be removed...
+/// Or integrated into the code base
+pub trait Candidate {
+    /// Text to display when listing alternatives.
+    fn display(&self) -> &str;
+    /// Text to insert in line.
+    fn replacement(&self) -> &str;
+}
 
-impl rustyline::completion::Candidate for CompletionSuggestion {
+impl Candidate for String {
+    fn display(&self) -> &str {
+        self.as_str()
+    }
+
+    fn replacement(&self) -> &str {
+        self.as_str()
+    }
+}
+
+/// #[deprecated = "Unusable"]
+impl Candidate for str {
+    fn display(&self) -> &str {
+        self
+    }
+
+    fn replacement(&self) -> &str {
+        self
+    }
+}
+
+impl Candidate for &'_ str {
+    fn display(&self) -> &str {
+        self
+    }
+
+    fn replacement(&self) -> &str {
+        self
+    }
+}
+
+pub struct CompletionSuggestion(Suggestion);
+
+impl Candidate for CompletionSuggestion {
     fn display(&self) -> &str {
         &self.0.display
     }
@@ -59,24 +103,40 @@ impl rustyline::completion::Candidate for CompletionSuggestion {
     }
 }
 
-impl rustyline::completion::Completer for Helper {
+/// To be called for tab-completion.
+pub trait Completer {
+    /// Specific completion candidate.
+    type Candidate: Candidate;
+
+    /// Takes the currently edited `line` with the cursor `pos`ition and
+    /// returns the start position and the completion candidates for the
+    /// partial word to be completed.
+    ///
+    /// ("ls /usr/loc", 11) => Ok((3, vec!["/usr/local/"]))
+    fn complete(
+        &self,
+        line: &str,
+        pos: usize,
+        ctx: &CompletionContext<'_>,
+    ) -> Result<(usize, Vec<Self::Candidate>), ShellError> {
+        let _ = (line, pos, ctx);
+        Ok((0, Vec::with_capacity(0)))
+    }
+}
+
+impl Completer for Helper {
     type Candidate = CompletionSuggestion;
 
     fn complete(
         &self,
         line: &str,
         pos: usize,
-        _ctx: &rustyline::Context<'_>,
-    ) -> Result<(usize, Vec<Self::Candidate>), rustyline::error::ReadlineError> {
+        _ctx: &CompletionContext<'_>,
+    ) -> Result<(usize, Vec<Self::Candidate>), ShellError> {
         let ctx = CompletionContext(&self.context);
         let (position, suggestions) = self.completer.complete(line, pos, &ctx);
         let suggestions = suggestions.into_iter().map(CompletionSuggestion).collect();
         Ok((position, suggestions))
-    }
-
-    fn update(&self, line: &mut rustyline::line_buffer::LineBuffer, start: usize, elected: &str) {
-        let end = line.pos();
-        line.replace(start..end, elected)
     }
 }
 
