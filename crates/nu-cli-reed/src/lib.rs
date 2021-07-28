@@ -1,6 +1,7 @@
 pub mod app;
 mod buffer;
 mod cli;
+mod shell;
 pub use crate::cli::cli;
 
 pub use crate::app::App;
