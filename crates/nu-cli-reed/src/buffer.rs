@@ -29,7 +29,9 @@ pub fn process_buffer(
 
         let helper = Helper::new(EvaluationContext::basic());
         let ctx = CompletionContext(ctx);
-        let _suggestions = helper.complete(line, 0, &ctx);
+        let suggestions = helper.complete(line, 0, &ctx);
+        println!("{:?}", suggestions);
+
         // let answer = suggestions.into_iter().map(CompletionSuggestion).collect();
         // println!("{:?}",suggestions);
 
