@@ -2,9 +2,9 @@ use {std::ops::Range, unicode_segmentation::UnicodeSegmentation};
 
 /// Cursor coordinates relative to the Unicode representation of [`LineBuffer`]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct InsertionPoint {
-    pub line: usize,
-    pub offset: usize,
+struct InsertionPoint {
+    line: usize,
+    offset: usize,
 }
 
 impl InsertionPoint {
@@ -20,8 +20,11 @@ impl Default for InsertionPoint {
 }
 
 /// In memory representation of the entered line(s) to facilitate cursor based editing.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct LineBuffer {
+    old_lines: Vec<Vec<String>>,
+    old_insertion_point: Vec<InsertionPoint>,
+    index_undo: usize,
     lines: Vec<String>,
     insertion_point: InsertionPoint,
 }
@@ -35,9 +38,64 @@ impl Default for LineBuffer {
 impl LineBuffer {
     pub fn new() -> LineBuffer {
         LineBuffer {
+            old_lines: vec![vec![String::new()]],
+            old_insertion_point: vec![InsertionPoint::new()],
+            index_undo: 2,
             lines: vec![String::new()],
             insertion_point: InsertionPoint::new(),
         }
+    }
+
+    pub fn reset_olds(&mut self) {
+        self.old_lines = vec![vec![String::new()]];
+        self.old_insertion_point = vec![InsertionPoint::new()];
+        self.index_undo = 2;
+    }
+
+    fn get_index_undo(&self) -> usize {
+        if let Some(c) = self.old_lines.len().checked_sub(self.index_undo) {
+            c
+        } else {
+            0
+        }
+    }
+
+    pub fn redo(&mut self) -> Option<()> {
+        if self.index_undo > 2 {
+            self.index_undo = self.index_undo.checked_sub(2)?;
+            self.undo()
+        } else {
+            None
+        }
+    }
+
+    pub fn undo(&mut self) -> Option<()> {
+        self.lines = self.old_lines.get(self.get_index_undo())?.clone();
+        let insertion_point = *self.old_insertion_point.get(self.get_index_undo())?;
+        self.set_insertion_point(insertion_point.line, insertion_point.offset);
+        if self.index_undo <= self.old_lines.len() {
+            self.index_undo = self.index_undo.checked_add(1)?;
+        }
+        Some(())
+    }
+
+    pub fn set_previous_lines(&mut self, is_after_action: bool) -> Option<()> {
+        self.reset_index_undo();
+        if self.old_lines.len() > 1
+            && self.old_lines.last()?.concat().trim().split(' ').count()
+                == self.lines.concat().trim().split(' ').count()
+            && !is_after_action
+        {
+            self.old_lines.pop();
+            self.old_insertion_point.pop();
+        }
+        self.old_lines.push(self.lines.clone());
+        self.old_insertion_point.push(self.insertion_point());
+        Some(())
+    }
+
+    pub fn reset_index_undo(&mut self) {
+        self.index_undo = 2;
     }
 
     /// Replaces the content between [`start`..`end`] with `text`
@@ -49,13 +107,16 @@ impl LineBuffer {
         self.lines.is_empty() || self.lines.len() == 1 && self.lines[0].is_empty()
     }
 
-    /// Return 2D-cursor (line_number, col_in_line)
-    pub fn insertion_point(&self) -> InsertionPoint {
-        self.insertion_point
+    pub fn offset(&self) -> usize {
+        self.insertion_point.offset
     }
 
-    pub fn set_insertion_point(&mut self, pos: InsertionPoint) {
-        self.insertion_point = pos;
+    pub fn line(&self) -> usize {
+        self.insertion_point.line
+    }
+
+    pub fn set_insertion_point(&mut self, line: usize, offset: usize) {
+        self.insertion_point = InsertionPoint { line, offset };
     }
 
     /// Output the current line in the multiline buffer
@@ -65,8 +126,17 @@ impl LineBuffer {
 
     /// Set to a single line of `buffer` and reset the `InsertionPoint` cursor
     pub fn set_buffer(&mut self, buffer: String) {
-        self.lines = vec![buffer];
-        self.insertion_point = InsertionPoint::new();
+        let buffer = buffer.lines().map(|s| s.into()).collect::<Vec<String>>();
+
+        // Note: `buffer` will have at least one element so the following operations are safe
+        let last_line_index = buffer.len() - 1;
+        let last_line_length = buffer.last().unwrap().len();
+
+        self.lines = buffer;
+        self.insertion_point = InsertionPoint {
+            line: last_line_index,
+            offset: last_line_length,
+        };
     }
 
     /// Reset the insertion point to the start of the buffer
@@ -314,6 +384,11 @@ impl LineBuffer {
             self.insertion_point.offset = insertion_offset;
         }
     }
+
+    /// Return 2D-cursor (line_number, col_in_line)
+    fn insertion_point(&self) -> InsertionPoint {
+        self.insertion_point
+    }
 }
 
 /// Match any sequence of characters that are considered a word boundary
@@ -375,6 +450,42 @@ mod test {
             expected_updated_insertion_point,
             line_buffer.insertion_point()
         );
+    }
+
+    #[test]
+    fn set_buffer_updates_insertion_point_to_new_buffer_length() {
+        let mut line_buffer = buffer_with("test string");
+        let before_operation_location = InsertionPoint {
+            line: 0,
+            offset: 11,
+        };
+        assert_eq!(before_operation_location, line_buffer.insertion_point());
+
+        line_buffer.set_buffer("new string".to_string());
+
+        let after_operation_location = InsertionPoint {
+            line: 0,
+            offset: 10,
+        };
+        assert_eq!(after_operation_location, line_buffer.insertion_point());
+    }
+
+    #[test]
+    fn set_buffer_works_with_multi_line_string() {
+        let mut line_buffer = buffer_with("test string");
+        let before_operation_location = InsertionPoint {
+            line: 0,
+            offset: 11,
+        };
+        assert_eq!(before_operation_location, line_buffer.insertion_point());
+
+        line_buffer.set_buffer("new line 1\nnew_line 2".to_string());
+
+        let after_operation_location = InsertionPoint {
+            line: 1,
+            offset: 10,
+        };
+        assert_eq!(after_operation_location, line_buffer.insertion_point());
     }
 
     #[test]
