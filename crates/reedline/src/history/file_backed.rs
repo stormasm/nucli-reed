@@ -5,17 +5,19 @@ use std::{
     path::PathBuf,
 };
 
+use crate::line_buffer::LineBuffer;
+
 use super::{
     base::{HistoryAppender, HistoryNavigationQuery, HistoryView},
     History,
 };
 
-/// Default size of the [`History`] used when calling [`History::default()`]
+/// Default size of the [`FileBackedHistory`] used when calling [`FileBackedHistory::default()`]
 pub const HISTORY_SIZE: usize = 1000;
 
 /// Stateful history that allows up/down-arrow browsing with an internal cursor.
 ///
-/// Can optionally be associated with a newline separated history file using the [`History::with_file()`] constructor.
+/// Can optionally be associated with a newline separated history file using the [`FileBackedHistory::with_file()`] constructor.
 /// Similar to bash's behavior without HISTTIMEFORMAT.
 /// (See <https://www.gnu.org/software/bash/manual/html_node/Bash-History-Facilities.html>)
 /// If the history is associated to a file all new changes within a given history capacity will be written to disk when History is dropped.
@@ -33,7 +35,7 @@ pub struct FileBackedHistory {
 impl Default for FileBackedHistory {
     /// Creates an in-memory [`History`] with a maximal capacity of [`HISTORY_SIZE`].
     ///
-    /// To create a [`History`] that is synchronized with a file use [`History::with_file()`]
+    /// To create a [`History`] that is synchronized with a file use [`FileBackedHistory::with_file()`]
     fn default() -> Self {
         Self::new(HISTORY_SIZE)
     }
@@ -73,7 +75,7 @@ impl HistoryAppender for FileBackedHistory {
 impl HistoryView for FileBackedHistory {
     fn back(&mut self) {
         match self.query.clone() {
-            HistoryNavigationQuery::Normal => {
+            HistoryNavigationQuery::Normal(_) => {
                 if self.cursor > 0 {
                     self.cursor -= 1;
                 }
@@ -89,8 +91,8 @@ impl HistoryView for FileBackedHistory {
 
     fn forward(&mut self) {
         match self.query.clone() {
-            HistoryNavigationQuery::Normal => {
-                if (self.cursor as isize) < self.entries.len() as isize - 1 {
+            HistoryNavigationQuery::Normal(_) => {
+                if self.cursor < self.entries.len() {
                     self.cursor += 1;
                 }
             }
@@ -104,32 +106,7 @@ impl HistoryView for FileBackedHistory {
     }
 
     fn string_at_cursor(&self) -> Option<String> {
-        if self.entries.is_empty() {
-            return None;
-        }
-
-        let entry = self.entries[self.cursor].to_string();
-
-        match self.query.clone() {
-            HistoryNavigationQuery::Normal => Some(entry),
-            HistoryNavigationQuery::PrefixSearch(prefix) => {
-                if entry.starts_with(&prefix) {
-                    Some(entry)
-                } else {
-                    None
-                }
-            }
-            HistoryNavigationQuery::SubstringSearch(substring) => {
-                if substring.is_empty() {
-                    return None;
-                }
-                if entry.contains(&substring) {
-                    Some(entry)
-                } else {
-                    None
-                }
-            }
-        }
+        self.entries.get(self.cursor).cloned()
     }
 
     fn set_navigation(&mut self, navigation: HistoryNavigationQuery) {
@@ -155,7 +132,7 @@ impl FileBackedHistory {
             file: None,
             len_on_disk: 0,
             truncate_file: true,
-            query: HistoryNavigationQuery::Normal,
+            query: HistoryNavigationQuery::Normal(LineBuffer::default()),
         }
     }
 
@@ -218,50 +195,36 @@ impl FileBackedHistory {
     }
 
     fn back_with_criteria(&mut self, criteria: &dyn Fn(&str) -> bool) {
-        let mut cursor = self.cursor;
-        let previous_match = self.string_at_cursor();
-
-        while cursor > 0 {
-            cursor -= 1;
-            let entry = &self.entries[cursor];
-            if criteria(entry) {
-                if previous_match
-                    // TODO Get rid of this clone
-                    .clone()
-                    .map_or(false, |value| &value == entry)
-                {
-                    continue;
-                } else {
-                    break;
-                }
+        if !self.entries.is_empty() {
+            let previous_match = self.entries.get(self.cursor);
+            if let Some((next_cursor, _)) = self
+                .entries
+                .iter()
+                .take(self.cursor)
+                .enumerate()
+                .rev()
+                .find(|(_, entry)| criteria(entry) && previous_match != Some(entry))
+            {
+                // set to entry
+                self.cursor = next_cursor
             }
         }
-
-        self.cursor = cursor;
     }
 
     fn forward_with_criteria(&mut self, criteria: &dyn Fn(&str) -> bool) {
-        let mut cursor = self.cursor;
-        let previous_match = self.string_at_cursor();
-
-        while cursor < self.entries.len() - 1 {
-            cursor += 1;
-            let entry = &self.entries[cursor];
-            if criteria(entry) {
-                // if entry.contains(&substring) {
-                if previous_match
-                    // TODO Get rid of this clone
-                    .clone()
-                    .map_or(false, |value| &value == entry)
-                {
-                    continue;
-                } else {
-                    break;
-                }
-            }
+        let previous_match = self.entries.get(self.cursor);
+        if let Some((next_cursor, _)) = self
+            .entries
+            .iter()
+            .enumerate()
+            .skip(self.cursor + 1)
+            .find(|(_, entry)| criteria(entry) && previous_match != Some(entry))
+        {
+            // set to entry
+            self.cursor = next_cursor
+        } else {
+            self.reset_cursor()
         }
-
-        self.cursor = cursor;
     }
 
     /// Writes unwritten history contents to disk.
@@ -299,16 +262,12 @@ impl FileBackedHistory {
 
     /// Reset the internal browsing cursor
     fn reset_cursor(&mut self) {
-        if self.entries.is_empty() {
-            self.cursor = 0
-        } else {
-            self.cursor = self.entries.len() - 1;
-        }
+        self.cursor = self.entries.len();
     }
 }
 
 impl Drop for FileBackedHistory {
-    /// On drop the content of the [`History`] will be written to the file if specified via [`History::with_file()`].
+    /// On drop the content of the [`History`] will be written to the file if specified via [`FileBackedHistory::with_file()`].
     fn drop(&mut self) {
         let _ = self.flush();
     }
@@ -364,7 +323,7 @@ mod tests {
         hist.forward();
         hist.forward();
         hist.forward();
-        assert_eq!(hist.string_at_cursor(), Some("command2".to_string()));
+        assert_eq!(hist.string_at_cursor(), None);
     }
 
     #[test]
@@ -392,6 +351,7 @@ mod tests {
 
         hist.set_navigation(HistoryNavigationQuery::PrefixSearch("find".to_string()));
 
+        hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me".to_string()));
         hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me as well".to_string()));
@@ -405,7 +365,7 @@ mod tests {
         hist.append(String::from("find me"));
 
         hist.set_navigation(HistoryNavigationQuery::PrefixSearch("find".to_string()));
-
+        hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me".to_string()));
         hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me as well".to_string()));
@@ -415,9 +375,28 @@ mod tests {
         hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me as well".to_string()));
     }
+    #[test]
+    fn prefix_search_returns_to_none() {
+        let mut hist = FileBackedHistory::default();
+        hist.append(String::from("find me as well"));
+        hist.append(String::from("test"));
+        hist.append(String::from("find me"));
+
+        hist.set_navigation(HistoryNavigationQuery::PrefixSearch("find".to_string()));
+        hist.back();
+        assert_eq!(hist.string_at_cursor(), Some("find me".to_string()));
+        hist.back();
+        assert_eq!(hist.string_at_cursor(), Some("find me as well".to_string()));
+        hist.forward();
+        assert_eq!(hist.string_at_cursor(), Some("find me".to_string()));
+        hist.forward();
+        assert_eq!(hist.string_at_cursor(), None);
+        hist.forward();
+        assert_eq!(hist.string_at_cursor(), None);
+    }
 
     #[test]
-    fn prefix_search_ignores_consecitive_equivalent_entries_going_backwards() {
+    fn prefix_search_ignores_consecutive_equivalent_entries_going_backwards() {
         let mut hist = FileBackedHistory::default();
         hist.append(String::from("find me as well"));
         hist.append(String::from("find me once"));
@@ -425,14 +404,14 @@ mod tests {
         hist.append(String::from("find me once"));
 
         hist.set_navigation(HistoryNavigationQuery::PrefixSearch("find".to_string()));
-
+        hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me once".to_string()));
         hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me as well".to_string()));
     }
 
     #[test]
-    fn prefix_search_ignores_consecitive_equivalent_entries_going_forwards() {
+    fn prefix_search_ignores_consecutive_equivalent_entries_going_forwards() {
         let mut hist = FileBackedHistory::default();
         hist.append(String::from("find me once"));
         hist.append(String::from("test"));
@@ -440,11 +419,13 @@ mod tests {
         hist.append(String::from("find me as well"));
 
         hist.set_navigation(HistoryNavigationQuery::PrefixSearch("find".to_string()));
-        hist.cursor = 0;
-
+        hist.back();
+        hist.back();
         assert_eq!(hist.string_at_cursor(), Some("find me once".to_string()));
         hist.forward();
         assert_eq!(hist.string_at_cursor(), Some("find me as well".to_string()));
+        hist.forward();
+        assert_eq!(hist.string_at_cursor(), None);
     }
 
     #[test]
@@ -459,7 +440,7 @@ mod tests {
         hist.set_navigation(HistoryNavigationQuery::SubstringSearch(
             "substring".to_string(),
         ));
-
+        hist.back();
         assert_eq!(
             hist.string_at_cursor(),
             Some("prefix substring suffix".to_string())
@@ -495,7 +476,7 @@ mod tests {
         let entries = vec!["test", "text", "more test text"];
 
         {
-            let mut hist = FileBackedHistory::with_file(1000, histfile.clone()).unwrap();
+            let mut hist = FileBackedHistory::with_file(5, histfile.clone()).unwrap();
 
             entries.iter().for_each(|e| hist.append(e.to_string()));
 
