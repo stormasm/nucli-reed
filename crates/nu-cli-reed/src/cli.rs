@@ -1,17 +1,7 @@
-use crossterm::event::{KeyCode, KeyModifiers};
-
+use crate::line_editor::create_line_editor;
+use nu_engine::script::{process_script, LineResult};
 use nu_engine::{maybe_print_errors, run_block, script::run_script_standalone, EvaluationContext};
-
-#[allow(unused_imports)]
-pub(crate) use nu_engine::script::{process_script, LineResult};
-
-use nu_ansi_term::{Color, Style};
-
-use reedline::{
-    default_emacs_keybindings, DefaultCompleter, DefaultCompletionActionHandler,
-    DefaultHighlighter, DefaultHinter, DefaultPrompt, EditCommand, FileBackedHistory, Reedline,
-    Signal,
-};
+use reedline::{DefaultPrompt, Signal};
 
 #[allow(unused_imports)]
 use nu_data::config;
@@ -125,44 +115,8 @@ pub fn cli(
     }
 
     loop {
-        let mut keybindings = default_emacs_keybindings();
-        keybindings.add_binding(
-            KeyModifiers::ALT,
-            KeyCode::Char('m'),
-            vec![EditCommand::BackspaceWord],
-        );
-
-        let history = Box::new(FileBackedHistory::with_file(50, "history.txt".into())?);
-        let commands = vec![
-            "test".into(),
-            "clear".into(),
-            "exit".into(),
-            "history".into(),
-            "logout".into(),
-            "hello world".into(),
-            "hello world reedline".into(),
-            "this is the reedline crate".into(),
-        ];
-
-        let completer = Box::new(DefaultCompleter::new_with_wordlen(commands.clone(), 2));
-
-        let mut line_editor = Reedline::new()
-            .with_history(history)?
-            .with_edit_mode(reedline::EditMode::Emacs)
-            .with_keybindings(keybindings)
-            .with_highlighter(Box::new(DefaultHighlighter::new(commands)))
-            .with_completion_action_handler(Box::new(
-                DefaultCompletionActionHandler::default().with_completer(completer.clone()),
-            ))
-            .with_hinter(Box::new(
-                DefaultHinter::default()
-                    .with_completer(completer) // or .with_history()
-                    // .with_inside_line()
-                    .with_style(Style::new().italic().fg(Color::LightGray)),
-            ));
-
         let prompt = DefaultPrompt::new(1);
-
+        let mut line_editor = create_line_editor().unwrap();
         let sig = line_editor.read_line(&prompt)?;
         match sig {
             Signal::CtrlD | Signal::CtrlC => {
