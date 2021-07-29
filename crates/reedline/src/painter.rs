@@ -1,7 +1,8 @@
 use {
     crate::{
+        hinter::Hinter,
         prompt::{PromptEditMode, PromptHistorySearch},
-        Highlighter, Prompt,
+        Highlighter, History, Prompt,
     },
     crossterm::{
         cursor::{self, position, MoveTo, MoveToColumn, RestorePosition, SavePosition},
@@ -18,13 +19,20 @@ pub struct Painter {
 
     // Buffer Highlighter
     buffer_highlighter: Box<dyn Highlighter>,
+
+    hinter: Box<dyn Hinter>,
 }
 
 impl Painter {
-    pub fn new(stdout: Stdout, buffer_highlighter: Box<dyn Highlighter>) -> Self {
+    pub fn new(
+        stdout: Stdout,
+        buffer_highlighter: Box<dyn Highlighter>,
+        hinter: Box<dyn Hinter>,
+    ) -> Self {
         Painter {
             stdout,
             buffer_highlighter,
+            hinter,
         }
     }
 
@@ -36,6 +44,10 @@ impl Painter {
 
     pub fn set_highlighter(&mut self, buffer_highlighter: Box<dyn Highlighter>) {
         self.buffer_highlighter = buffer_highlighter;
+    }
+
+    pub fn set_hinter(&mut self, hinter: Box<dyn Hinter>) {
+        self.hinter = hinter;
     }
 
     /// Queue the complete prompt to display including status indicators (e.g. pwd, time)
@@ -87,17 +99,45 @@ impl Painter {
         original_line: String,
         prompt_offset: (u16, u16),
         cursor_position_in_buffer: usize,
+        history: &dyn History,
     ) -> Result<()> {
         let highlighted_line = self
             .buffer_highlighter
             .highlight(&original_line)
             .render_around_insertion_point(cursor_position_in_buffer);
 
-        self.stdout
-            .queue(MoveTo(prompt_offset.0, prompt_offset.1))?
-            .queue(Print(highlighted_line.0))?
+        let (before_cursor, after_cursor) = highlighted_line;
+
+        let before_cursor_lines = before_cursor.lines();
+        let after_cursor_lines = after_cursor.lines();
+
+        let mut commands = self
+            .stdout
+            .queue(MoveTo(prompt_offset.0, prompt_offset.1))?;
+
+        for (idx, before_cursor_line) in before_cursor_lines.enumerate() {
+            if idx != 0 {
+                commands = commands.queue(Print("\r\n"))?;
+            }
+            commands = commands.queue(Print(before_cursor_line))?;
+        }
+
+        commands = commands
             .queue(SavePosition)?
-            .queue(Print(highlighted_line.1))?
+            .queue(Print(self.hinter.handle(
+                &original_line,
+                cursor_position_in_buffer,
+                history,
+            )))?;
+
+        for (idx, after_cursor_line) in after_cursor_lines.enumerate() {
+            if idx != 0 {
+                commands = commands.queue(Print("\r\n"))?;
+            }
+            commands = commands.queue(Print(after_cursor_line))?;
+        }
+
+        commands
             .queue(Clear(ClearType::FromCursorDown))?
             .queue(RestorePosition)?
             .flush()?;
@@ -105,6 +145,7 @@ impl Painter {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn repaint_everything(
         &mut self,
         prompt: &dyn Prompt,
@@ -113,6 +154,7 @@ impl Painter {
         cursor_position_in_buffer: usize,
         buffer: String,
         terminal_size: (u16, u16),
+        history: &dyn History,
     ) -> Result<(u16, u16)> {
         self.stdout.queue(cursor::Hide)?;
         self.queue_move_to(prompt_origin.0, prompt_origin.1)?;
@@ -121,7 +163,7 @@ impl Painter {
         self.flush()?;
         // set where the input begins
         let prompt_offset = position()?;
-        self.queue_buffer(buffer, prompt_offset, cursor_position_in_buffer)?;
+        self.queue_buffer(buffer, prompt_offset, cursor_position_in_buffer, history)?;
         self.stdout.queue(cursor::Show)?;
         self.flush()?;
 
@@ -145,7 +187,11 @@ impl Painter {
         Ok(())
     }
 
-    pub fn queue_history_results(&mut self, history_result: &str, offset: usize) -> Result<()> {
+    pub fn queue_history_search_result(
+        &mut self,
+        history_result: &str,
+        offset: usize,
+    ) -> Result<()> {
         self.stdout
             .queue(Print(&history_result[..offset]))?
             .queue(SavePosition)?
