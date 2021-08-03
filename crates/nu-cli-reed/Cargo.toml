@@ -5,7 +5,7 @@ description = "CLI for nushell"
 edition = "2018"
 license = "MIT"
 name = "nu-cli-reed"
-version = "0.34.0"
+version = "0.35.0"
 
 [lib]
 doctest = false
@@ -13,16 +13,16 @@ doctest = false
 [dependencies]
 reedline = { version = "0.1.0", path = "../reedline"}
 
-nu-completion = "0.34.0"
-nu-command = "0.34.0"
-nu-data = "0.34.0"
-nu-engine = "0.34.0"
-nu-errors = "0.34.0"
-nu-parser = "0.34.0"
-nu-protocol = "0.34.0"
-nu-source = "0.34.0"
-nu-stream = "0.34.0"
-nu-ansi-term = "0.34.0"
+nu-completion = "0.35.0"
+nu-command = "0.35.0"
+nu-data = "0.35.0"
+nu-engine = "0.35.0"
+nu-errors = "0.35.0"
+nu-parser = "0.35.0"
+nu-protocol = "0.35.0"
+nu-source = "0.35.0"
+nu-stream = "0.35.0"
+nu-ansi-term = "0.35.0"
 
 crossterm = { version = "0.20.0", features = ["serde"] }
 indexmap ="1.6.1"
